@@ -1,0 +1,16 @@
+version: "0.1"
+
+services:
+  training-pipeline:
+    build:
+      context: .
+    profiles:
+      - "dev"
+    image: "spira-training"
+    entrypoint: "python"
+    command:
+      - "/app/src/train.py"
+    volumes:
+      - ".:/app/"
+    ports:
+      - "3000:8000"

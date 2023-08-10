@@ -1,0 +1,11 @@
+DOCKER_COMPOSE_DEV := docker compose --profile dev
+DOCKER_COMPOSE_DEV_BUILD := ${DOCKER_COMPOSE_DEV} build
+DOCKER_COMPOSE_DEV_UP := ${DOCKER_COMPOSE_DEV} up
+
+all: build start
+
+build:
+	${DOCKER_COMPOSE_DEV_BUILD}
+
+start:
+	${DOCKER_COMPOSE_DEV_UP}
