@@ -9,7 +9,7 @@ services:
     image: "spira-training"
     entrypoint: "python"
     command:
-      - "/app/src/train.py"
+      - "training-pipeline/train.py"
     volumes:
       - ".:/app/"
     ports:
