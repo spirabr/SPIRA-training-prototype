@@ -1,5 +1,5 @@
 # --- base image
-FROM python:3.10 as base
+FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel as base
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN pip install "poetry==${POETRY_VERSION}"
 COPY pyproject.toml poetry.lock ./
 
 # --no-root : https://stackoverflow.com/questions/75397736/poetry-install-on-an-existing-project-error-does-not-contain-any-element
-RUN ls -lh && poetry install --no-root
+RUN poetry install --no-root
 
 COPY . .
 
