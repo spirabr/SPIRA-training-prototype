@@ -7,8 +7,11 @@ services:
     profiles:
       - "dev"
     image: "spira-training"
+    environment:
+      - DISPLAY=${DISPLAY}
     entrypoint: "python training-pipeline/train.py"
     volumes:
       - ".:/app/"
+      - "/tmp/.X11-unix:/tmp/.X11-unix"
     ports:
       - "3000:8000"
