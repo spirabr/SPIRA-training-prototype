@@ -1,15 +1,11 @@
-from sklearn.metrics import mean_squared_error
-from sklearn.svm import SVC
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
-import matplotlib.pyplot as plt
-import matplotlib
 from data_extraction import data_reading
 from data_split import training_and_test_set
 from feature_engineering import extract_features
 from hiperparameters_configuration import linear_regression
-
-matplotlib.use('Agg')  # Use the Agg backend for non-interactive plotting
+from train import fit
+from prediction import predict
+from metrics import error_residual
+from analytics import plot
 
 # Extração de dados
 housing = data_reading()
@@ -25,15 +21,14 @@ features_test = extract_features(X_test)
 regr = linear_regression()
 
 # Treino
-regr.fit(features_train, y_train)
+regr = fit(regr, features_train, y_train)
 
 # Predição
-y_pred = regr.predict(features_test)
+y_pred = predict(regr, features_test)
 
 # Métricas
-residuals = y_pred - y_test
+residuals = error_residual(y_pred, y_test)
 
 # Analytics
-plt.hist(residuals)
-plt.savefig('training-pipeline/plot.png')  # Save the plot as an image file
+plot(residuals)
 
