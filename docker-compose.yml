@@ -9,7 +9,7 @@ services:
     image: "spira-training"
     environment:
       - DISPLAY=${DISPLAY}
-    entrypoint: "python training-pipeline/train.py"
+    entrypoint: "python training-pipeline/model_pipeline.py"
     volumes:
       - ".:/app/"
       - "/tmp/.X11-unix:/tmp/.X11-unix"

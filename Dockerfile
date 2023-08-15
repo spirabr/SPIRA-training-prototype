@@ -19,4 +19,4 @@ RUN ls -lh && poetry install --no-root
 
 COPY . .
 
-CMD ["training-pipeline/train.py"]
+CMD ["training-pipeline/model_pipeline.py"]
