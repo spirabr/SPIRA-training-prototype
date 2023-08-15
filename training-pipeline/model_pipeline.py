@@ -1,5 +1,3 @@
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
@@ -9,22 +7,21 @@ from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_sc
 import matplotlib
 matplotlib.use('Agg')  # Use the Agg backend for non-interactive plotting
 
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
+from data_extraction import data_reading
+from data_split import training_and_test_set
+from feature_engineering import extract_features
+from hiperparameters_configuration import
+
 # Extração de dados
-housing = pd.read_csv('training-pipeline/housing.csv')
+housing = data_reading()
 
 # Separação de conjunto de treino e de teste
-X_train, X_test, y_train, y_test = train_test_split(housing.median_income, housing.median_house_value, test_size = 0.2)
+X_train, X_test, y_train, y_test = training_and_test_set(housing)
 
 
 # Feature engineering
-def extract_features(X):
-    return np.array(X).reshape(-1, 1)
-
-
 features_train = extract_features(X_train)
 features_test = extract_features(X_test)
 
