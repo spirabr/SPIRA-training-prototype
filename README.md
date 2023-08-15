@@ -14,23 +14,21 @@ What things you need to install
 
 ### Build Image
 
-``` 
+```bash
 make build
 ```
 
 ### Running the container
 
-``` 
+```bash
 make start
 ```
 
 ### Add a dependency for your code
-```
-make add-dependency <DEPENDENCY>
-```
+
 Example
-```
-make add-dependency pytorch==1.0.2
+```bash
+make add-dependency DEPENDENCY="pytorch==1.0.2"
 ```
 
 ## Built With
@@ -39,10 +37,6 @@ make add-dependency pytorch==1.0.2
 * [Poetry](https://python-poetry.org/) - Python Packaging and Dependency Management
 * [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/linux/) - Containerization
 * [GitHub](https://github.com/) - Version Control
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Versioning
 
