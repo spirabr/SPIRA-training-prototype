@@ -8,6 +8,24 @@ from metrics import error_residual
 from analytics import plot
 import torch
 
+
+# def f(x, y):
+#     return torch.exp(torch.pow(torch.sin(x), 2))/torch.pow(x-y, 2) + torch.pow(x-y, 2)
+#
+# x = torch.tensor([0.2], requires_grad=True)
+# y = torch.tensor([10.0], requires_grad=True)
+# eta = 0.1
+#
+# optimizer = torch.optim.SGD([x, y], lr=eta)
+# for epoch in range(60):
+#     optimizer.zero_grad() #x.grad.zero_()
+#     loss_incurred = f(x, y)
+#     loss_incurred.backward()
+#     optimizer.step() #x.data -= eta * x.grad
+# print(x.data)
+# print(y.data)
+
+
 # Extração de dados
 dataset = data_reading()
 print("Length: ", len(dataset))
