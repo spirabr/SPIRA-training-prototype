@@ -1,6 +1,6 @@
-from sklearn.model_selection import train_test_split
+import torch.utils.data
 
 
 # Separação de conjunto de treino e de teste
-def training_and_test_set(housing):
-    return train_test_split(housing.median_income, housing.median_house_value, test_size=0.2)
+def training_and_test_set(dataset, train_size, test_size):
+    return torch.utils.data.random_split(dataset, (train_size, test_size))
