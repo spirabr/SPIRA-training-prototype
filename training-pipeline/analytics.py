@@ -1,8 +1,9 @@
+import seaborn as sns
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use('Agg')  # Use the Agg backend for non-interactive plotting
 
 
-def plot(a):
-    plt.hist(a)
-    plt.savefig('training-pipeline/plot.png')  # Save the plot as an image file
+def plot(X, y, Y_pred):
+    sns.scatterplot(x=X.ravel(), y=y.ravel(), color='blue', label='Data')  # The data
+    sns.lineplot(x=X.ravel(), y=Y_pred.ravel(), color='red', label='Linear Model')  # What our model learned
+    # Save the plot using Matplotlib's savefig
+    plt.savefig('training-pipeline/plot.png')

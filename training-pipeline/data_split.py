@@ -1,6 +1,7 @@
-import torch.utils.data
+import torch
+from torch.utils.data import *
 
 
-# Separação de conjunto de treino e de teste
-def training_and_test_set(dataset, train_size, test_size):
-    return torch.utils.data.random_split(dataset, (train_size, test_size))
+# Train and test data split
+def data_split(simple_1d_regression):
+    return DataLoader(simple_1d_regression, shuffle=True)
