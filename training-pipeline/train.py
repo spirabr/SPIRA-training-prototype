@@ -24,8 +24,8 @@ def moveTo(obj, device):
         return obj
 
 
-def train_neural_network(model, loss_func, train_features, epochs=20, device="cpu"):
-    training_loader = DataLoader(train_features, shuffle=True)
+def train_neural_network(model, loss_func, train_dataset, epochs=20, device="cpu"):
+    training_loader = DataLoader(train_dataset)
 
     # WE create the optimizer and move the model to the compute device
     # SGD is Stochastic Gradient Decent over the parameters $\Theta$

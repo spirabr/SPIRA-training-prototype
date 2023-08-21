@@ -1,8 +1,9 @@
 import torch
-
+from torch.utils.data import *
 
 # Validate the model predictions
-def validate(model, test_features):
+def validate(model, X_test):
     with torch.no_grad():
-        Y_pred = model(test_features.inputs()).cpu().numpy()
+        X_features = torch.tensor(X_test, dtype=torch.float32)
+        Y_pred = model(X_features).cpu().numpy()
     return Y_pred

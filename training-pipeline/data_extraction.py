@@ -1,10 +1,6 @@
-import numpy as np
-
+from sklearn.datasets import make_moons
 
 def generate_data():
-    # Create a 1-dimensional input
-    X = np.linspace(0, 20, num=2000)
-    # Create an output
-    y = X + np.sin(X) * 2 + np.random.normal(size=X.shape)
+    X, y = make_moons(n_samples=200, noise=0.05)
     return X, y
 
