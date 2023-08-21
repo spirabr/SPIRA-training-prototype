@@ -1,7 +1,6 @@
-import torch
-from torch.utils.data import *
+from sklearn.model_selection import train_test_split
 
 
 # Train and test data split
-def data_split(simple_1d_regression):
-    return DataLoader(simple_1d_regression, shuffle=True)
+def split_data(X, y):
+    return train_test_split(X, y, test_size=0.2, random_state=42)

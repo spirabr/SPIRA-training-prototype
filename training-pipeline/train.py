@@ -1,5 +1,5 @@
 import torch
-import torch.nn as nn
+from torch.utils.data import *
 
 
 def moveTo(obj, device):
@@ -24,7 +24,9 @@ def moveTo(obj, device):
         return obj
 
 
-def train_simple_network(model, loss_func, training_loader, epochs=20, device="cpu"):
+def train_neural_network(model, loss_func, train_features, epochs=20, device="cpu"):
+    training_loader = DataLoader(train_features, shuffle=True)
+
     # WE create the optimizer and move the model to the compute device
     # SGD is Stochastic Gradient Decent over the parameters $\Theta$
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
@@ -64,13 +66,3 @@ def train_simple_network(model, loss_func, training_loader, epochs=20, device="c
             running_loss += loss.item()
 
 
-# Train
-def fit(training_loader):
-    in_features = 1
-    out_features = 1
-    model = nn.Linear(in_features, out_features)
-    loss_func = nn.MSELoss()
-
-    device = torch.device("cpu")
-    train_simple_network(model, loss_func, training_loader, device=device)
-    return model

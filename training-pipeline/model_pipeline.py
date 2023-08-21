@@ -8,22 +8,24 @@ from analytics import *
 
 
 ###### Data extraction ######
-X, y = data_creation()
-
-###### Feature engineering ######
-X, y = feature_reshape(X, y)
-
-###### Hyperparameters configuration #####
-simple_1d_regression = Simple1DRegressionDataset(X, y)
+X, y = generate_data()
 
 ###### train and test data split ######
-training_loader = data_split(simple_1d_regression)
+X_train, X_test, y_train, y_test = split_data(X, y)
+
+###### Feature engineering ######
+train_features = extract_features(X_train, y_train)
+test_features = extract_features(X_test, y_test)
+
+###### Hyperparameters configuration #####
+num_neurons = 10
+model, loss_func = build_fnn(num_neurons)
 
 ##### Train the model #####
-model = fit(training_loader)
+train_neural_network(model, loss_func, train_features, epochs=200)
 
 ##### Validate the model #####
-Y_pred = validate(model, X)
+Y_pred = validate(model, test_features)
 
 ##### Analytics #####
-plot(X, y, Y_pred)
+plot(X_test, y_test, Y_pred)

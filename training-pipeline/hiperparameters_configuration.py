@@ -1,19 +1,15 @@
-import torch
-from torch.utils.data import *
+import torch.nn as nn
 
 
-# Configuração de hiperparâmetros (linear regression tem zero)
-class Simple1DRegressionDataset(Dataset):
+# Hyperparameters configuration (linear regression has zero)
+def build_fnn(num_neurons):
+    # Input "layer" is implicitly the input
+    model = nn.Sequential(
+        nn.Linear(1, num_neurons),  # Hidden layer
+        nn.Tanh(),  # Activation
+        nn.Linear(num_neurons, 1)  # Output layer
+    )
 
-    def __init__(self, X, y):
-        super(Simple1DRegressionDataset, self).__init__()
-        self.X = X.reshape(-1, 1)
-        self.y = y.reshape(-1, 1)
-
-    def __getitem__(self, index):
-        inputs = torch.tensor(self.X[index, :], dtype=torch.float32)
-        labels = torch.tensor(self.y[index], dtype=torch.float32)
-        return inputs, labels
-
-    def __len__(self):
-        return self.X.shape[0]
+    # MSE = Mean Squared Error
+    loss_func = nn.MSELoss()
+    return model, loss_func
