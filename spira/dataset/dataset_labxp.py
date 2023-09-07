@@ -15,17 +15,6 @@ class Dataset(Dataset):
     Class for load a train and test from dataset generate by import_librispeech.py and others
     """
 
-    def _insert_noise(self):
-        if self.c.data_augmentation['insert_noise']:
-            self.noise_csv = self.c.dataset['noise_csv']
-            self.noise_root = self.c.dataset['noise_data_root_path']
-            assert os.path.isfile(self.noise_csv), "Noise CSV file don't exists! Fix it in config.json"
-            self.noise_list = pd.read_csv(self.noise_csv, sep=',').values
-            # noise config
-            self.num_noise_files = len(self.noise_list) - 1
-            self.control_class = self.c.dataset['control_class']
-            self.patient_class = self.c.dataset['patient_class']
-
     def __init__(self, c, ap, dataset_csv, dataset_path, max_seq_len=None):
         # set random seed
         random.seed(c['seed'])
@@ -84,6 +73,17 @@ class Dataset(Dataset):
                 self.max_seq_len = self.c.dataset['max_seq_len']
             else:
                 self.max_seq_len = max_seq_len
+
+    def _insert_noise(self):
+        if self.c.data_augmentation['insert_noise']:
+            self.noise_csv = self.c.dataset['noise_csv']
+            self.noise_root = self.c.dataset['noise_data_root_path']
+            assert os.path.isfile(self.noise_csv), "Noise CSV file don't exists! Fix it in config.json"
+            self.noise_list = pd.read_csv(self.noise_csv, sep=',').values
+            # noise config
+            self.num_noise_files = len(self.noise_list) - 1
+            self.control_class = self.c.dataset['control_class']
+            self.patient_class = self.c.dataset['patient_class']
 
     def get_max_seq_length(self):
         return self.max_seq_len
