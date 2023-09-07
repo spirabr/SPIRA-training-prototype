@@ -15,6 +15,17 @@ class Dataset(Dataset):
     Class for load a train and test from dataset generate by import_librispeech.py and others
     """
 
+    def _insert_noise(self):
+        if self.c.data_augmentation['insert_noise']:
+            self.noise_csv = self.c.dataset['noise_csv']
+            self.noise_root = self.c.dataset['noise_data_root_path']
+            assert os.path.isfile(self.noise_csv), "Noise CSV file don't exists! Fix it in config.json"
+            self.noise_list = pd.read_csv(self.noise_csv, sep=',').values
+            # noise config
+            self.num_noise_files = len(self.noise_list) - 1
+            self.control_class = self.c.dataset['control_class']
+            self.patient_class = self.c.dataset['patient_class']
+
     def __init__(self, c, ap, dataset_csv, dataset_path, max_seq_len=None):
         # set random seed
         random.seed(c['seed'])
@@ -33,47 +44,40 @@ class Dataset(Dataset):
         self.eval = False
         self.test = False
 
-        if c.data_augmentation['insert_noise']:
-            self.noise_csv = c.dataset['noise_csv']
-            self.noise_root = c.dataset['noise_data_root_path']
-            assert os.path.isfile(self.noise_csv), "Noise CSV file don't exists! Fix it in config.json"
-            self.noise_list = pd.read_csv(self.noise_csv, sep=',').values
-            # noise config
-            self.num_noise_files = len(self.noise_list) - 1
-            self.control_class = c.dataset['control_class']
-            self.patient_class = c.dataset['patient_class']
+        # Is it good?
+        self._insert_noise()
 
         assert os.path.isfile(self.dataset_csv), "Test or Train CSV file don't exists! Fix it in config.json"
-        assert (not self.c.dataset['padding_with_max_lenght'] and self.c.dataset['split_wav_using_overlapping']) or (
-                self.c.dataset['padding_with_max_lenght'] and not self.c.dataset[
+        assert (not self.c.dataset['padding_with_max_length'] and self.c.dataset['split_wav_using_overlapping']) or (
+                self.c.dataset['padding_with_max_length'] and not self.c.dataset[
             'split_wav_using_overlapping']), "You cannot use the padding_with_max_length option in conjunction with the split_wav_using_overlapping option, disable one of them !!"
 
         # read csvs
         self.dataset_list = pd.read_csv(self.dataset_csv, sep=',').values
 
-        # get max seq lenght for padding
-        if self.c.dataset['padding_with_max_lenght'] and self.train and not self.c.dataset['max_seq_len'] and not \
+        # get max seq length for padding
+        if self.c.dataset['padding_with_max_length'] and self.train and not self.c.dataset['max_seq_len'] and not \
                 self.c.dataset['split_wav_using_overlapping']:
             self.max_seq_len = 0
             min_seq = float('inf')
             for idx in range(len(self.dataset_list)):
                 wav = self.ap.load_wav(os.path.join(self.dataset_path, self.dataset_list[idx][0]))
-                # calculate time step dim using hop lenght
+                # calculate time step dim using hop length
                 seq_len = int((wav.shape[1] / c.audio['hop_length']) + 1)
                 if seq_len > self.max_seq_len:
                     self.max_seq_len = seq_len
                 if seq_len < min_seq:
                     min_seq = seq_len
-            print("The Max Time dim Lenght is: {} (+- {} seconds)".format(self.max_seq_len, (
+            print("The Max Time dim length is: {} (+- {} seconds)".format(self.max_seq_len, (
                     self.max_seq_len * self.c.audio['hop_length']) / self.ap.sample_rate))
-            print("The Min Time dim Lenght is: {} (+- {} seconds)".format(min_seq, (
+            print("The Min Time dim length is: {} (+- {} seconds)".format(min_seq, (
                     min_seq * self.c.audio['hop_length']) / self.ap.sample_rate))
 
         elif self.c.dataset['split_wav_using_overlapping']:
-            # set max len for window_len seconds multiply by sample_rate and divide by hop_lenght
+            # set max len for window_len seconds multiply by sample_rate and divide by hop_length
             self.max_seq_len = self.c.dataset[
                 'max_seq_len']  # int(((self.c.dataset['window_len']*self.ap.sample_rate)/c.audio['hop_length'])+1)
-            print("The Max Time dim Lenght is: ", self.max_seq_len, "It's use overlapping technique, window:",
+            print("The Max Time dim length is: ", self.max_seq_len, "It's use overlapping technique, window:",
                   self.c.dataset['window_len'], "step:", self.c.dataset['step'])
         else:  # for eval set max_seq_len in train mode
             if self.c.dataset['max_seq_len']:
@@ -81,7 +85,7 @@ class Dataset(Dataset):
             else:
                 self.max_seq_len = max_seq_len
 
-    def get_max_seq_lenght(self):
+    def get_max_seq_length(self):
         return self.max_seq_len
 
     def __getitem__(self, idx):
@@ -171,7 +175,7 @@ class Dataset(Dataset):
             feature = feature.transpose(1, 2)
             # remove batch dim = (timestamp, n_features)
             feature = feature.reshape(feature.shape[1:])
-            if self.c.dataset['padding_with_max_lenght']:
+            if self.c.dataset['padding_with_max_length']:
                 # padding for max sequence
                 zeros = torch.zeros(self.max_seq_len - feature.size(0), feature.size(1))
                 # append zeros before features
