@@ -36,43 +36,13 @@ class Dataset(Dataset):
         # Is it good?
         self._insert_noise()
 
-        assert os.path.isfile(self.dataset_csv), "Test or Train CSV file don't exists! Fix it in config.json"
-        assert (not self.c.dataset['padding_with_max_length'] and self.c.dataset['split_wav_using_overlapping']) or (
-                self.c.dataset['padding_with_max_length'] and not self.c.dataset[
-            'split_wav_using_overlapping']), "You cannot use the padding_with_max_length option in conjunction with the split_wav_using_overlapping option, disable one of them !!"
+        self._warning_test_or_train_csv_non_existent(self.dataset_csv)
+        self._warning_use_of_padding_with_max_length_with_split_wav_using_overlapping(self.c.dataset['padding_with_max_length'], self.c.dataset['split_wav_using_overlapping'])
 
         # read csvs
         self.dataset_list = pd.read_csv(self.dataset_csv, sep=',').values
 
-        # get max seq length for padding
-        if self.c.dataset['padding_with_max_length'] and self.train and not self.c.dataset['max_seq_len'] and not \
-                self.c.dataset['split_wav_using_overlapping']:
-            self.max_seq_len = 0
-            min_seq = float('inf')
-            for idx in range(len(self.dataset_list)):
-                wav = self.ap.load_wav(os.path.join(self.dataset_path, self.dataset_list[idx][0]))
-                # calculate time step dim using hop length
-                seq_len = int((wav.shape[1] / c.audio['hop_length']) + 1)
-                if seq_len > self.max_seq_len:
-                    self.max_seq_len = seq_len
-                if seq_len < min_seq:
-                    min_seq = seq_len
-            print("The Max Time dim length is: {} (+- {} seconds)".format(self.max_seq_len, (
-                    self.max_seq_len * self.c.audio['hop_length']) / self.ap.sample_rate))
-            print("The Min Time dim length is: {} (+- {} seconds)".format(min_seq, (
-                    min_seq * self.c.audio['hop_length']) / self.ap.sample_rate))
-
-        elif self.c.dataset['split_wav_using_overlapping']:
-            # set max len for window_len seconds multiply by sample_rate and divide by hop_length
-            self.max_seq_len = self.c.dataset[
-                'max_seq_len']  # int(((self.c.dataset['window_len']*self.ap.sample_rate)/c.audio['hop_length'])+1)
-            print("The Max Time dim length is: ", self.max_seq_len, "It's use overlapping technique, window:",
-                  self.c.dataset['window_len'], "step:", self.c.dataset['step'])
-        else:  # for eval set max_seq_len in train mode
-            if self.c.dataset['max_seq_len']:
-                self.max_seq_len = self.c.dataset['max_seq_len']
-            else:
-                self.max_seq_len = max_seq_len
+        self.max_seq_len = max_seq_length_calculator(c, ap, self.c.dataset['padding_with_max_length'], self.train, self.dataset_path, self.dataset_list)
 
     def _insert_noise(self):
         if self.c.data_augmentation['insert_noise']:
@@ -84,6 +54,15 @@ class Dataset(Dataset):
             self.num_noise_files = len(self.noise_list) - 1
             self.control_class = self.c.dataset['control_class']
             self.patient_class = self.c.dataset['patient_class']
+
+    def _warning_test_or_train_csv_non_existent(self, dataset_csv):
+        assert os.path.isfile(dataset_csv), "Test or Train CSV file don't exists! Fix it in config.json"
+
+    def _warning_use_of_padding_with_max_length_with_split_wav_using_overlapping(self, padding_with_max_length,
+                                                                                 split_wav_using_overlapping):
+        assert ((not padding_with_max_length and split_wav_using_overlapping) or
+                (padding_with_max_length and not split_wav_using_overlapping)), \
+            "You cannot use the padding_with_max_length option in conjunction with the split_wav_using_overlapping option, disable one of them !!"
 
     def get_max_seq_length(self):
         return self.max_seq_len
@@ -188,6 +167,32 @@ class Dataset(Dataset):
 
     def __len__(self):
         return len(self.dataset_list)
+
+
+def max_seq_length_calculator(c, ap, padding_with_max_length, train_mode, dataset_path, dataset_list):
+    if c.dataset['max_seq_len']:
+        return c.dataset['max_seq_len']
+    if not padding_with_max_length or not train_mode:
+        return None # raise Exception("Properties unavailable")
+    min_len, max_len = _find_min_max_in_wav(ap, c.audio['hop_length'], dataset_path, dataset_list)
+
+    print("The Max Time dim length is: {} (+- {} seconds)".format(max_len, (
+            max_len * c.audio['hop_length']) / ap.sample_rate))
+    print("The Min Time dim length is: {} (+- {} seconds)".format(min_len, (
+            min_len * c.audio['hop_length']) / ap.sample_rate))
+
+    return max_len
+
+
+def _find_min_max_in_wav(ap, hop_length, dataset_dir, dataset_names):
+    paths = dataset_names.map(lambda name: os.path.join(dataset_dir, name))
+    wavs = paths.map(lambda path: ap.load_wav(path))
+    seq_lens = wavs.map(lambda wav: _calculate_seq_len_for_wav(wav, hop_length))
+    return min(seq_lens), max(seq_lens)
+
+
+def _calculate_seq_len_for_wav(wav, hop_length):
+    return int((wav.shape[1] / hop_length) + 1)
 
 
 def _load_train_dataset(c, ap, max_seq_len):
