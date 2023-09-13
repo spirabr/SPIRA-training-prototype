@@ -66,8 +66,8 @@ if not do_files_exist[0]:
     raise FileExistsError(do_files_exist[1])
 
 check_files_exist(config)
-tuple_datasets_and_classes = load_spira_datasets_and_classes(config.dataset_csv)
-datasets = list(dataset[0] for dataset in tuple_datasets_and_classes)
+datasets_and_classes_zip = load_spira_datasets_and_classes(config.dataset_csv)
+# set_tuple_datasets_and_classes = set(datasets_and_classes_zip)
 noise = load_spira_noise(config.noise_csv)
 
 ###### Data extraction ######

@@ -136,8 +136,13 @@ def max_seq_length_calculator(c, ap, padding_with_max_length, train_mode, tuple_
     return max_len
 
 
+def _return_list_seq_len(zip_object, hop_length):
+    return [_calculate_seq_len_for_dataset(item, hop_length) for item in zip_object]
+
+
 def _find_min_max_in_wav(hop_length, tuple_datasets_and_classes):
-    seq_lens = tuple_datasets_and_classes.map(lambda dataset: _calculate_seq_len_for_dataset(dataset, hop_length))
+    seq_lens = _return_list_seq_len(tuple_datasets_and_classes, hop_length)
+    # seq_lens = tuple_datasets_and_classes.map(lambda dataset: _calculate_seq_len_for_dataset(dataset, hop_length))
     return min(seq_lens), max(seq_lens)
 
 
