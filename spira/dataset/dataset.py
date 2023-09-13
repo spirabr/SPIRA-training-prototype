@@ -86,7 +86,7 @@ class Dataset(Dataset):
 
         return feature, target
 
-    # Agora que não estamos usando o datasets, como posso fazer o seguinte?
+    # TODO: Resolver o len(self.datasets (Agora que não estamos usando o datasets, como posso fazer o seguinte?)
     def __len__(self):
         return len(self.datasets)
 
