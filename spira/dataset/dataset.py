@@ -17,7 +17,7 @@ class Dataset(Dataset):
     Class for load a train and test from dataset generate by import_librispeech.py and others
     """
 
-    def __init__(self, c, ap, tuple_datasets_and_classes, noise):
+    def __init__(self, c, ap, tuples_dataset_and_class, noise):
         # set random seed
         random.seed(c['seed'])
         torch.manual_seed(c['seed'])
@@ -27,21 +27,21 @@ class Dataset(Dataset):
         self.c = c
         self.ap = ap
 
-        self.tuple_datasets_and_classes = tuple_datasets_and_classes
+        self.tuples_dataset_and_class = tuples_dataset_and_class
         self.noise = noise
 
         self.train = False
         self.eval = False
         self.test = False
 
-        self.max_seq_len = max_seq_length_calculator(c, ap, self.c.dataset['padding_with_max_length'], self.train, self.tuple_datasets_and_classes)
+        self.max_seq_len = max_seq_length_calculator(c, ap, self.c.dataset['padding_with_max_length'], self.train, self.tuples_dataset_and_class)
 
     def get_max_seq_length(self):
         return self.max_seq_len
 
     def __getitem__(self, idx):
-        wav = self.tuple_datasets_and_classes[idx][0]
-        class_name = self.tuple_datasets_and_classes[idx][1]
+        wav = self.tuples_dataset_and_class[idx][0]
+        class_name = self.tuples_dataset_and_class[idx][1]
 
         # its assume that noise file is bigger than wav file !!
         if self.c.data_augmentation['insert_noise']:
@@ -121,12 +121,12 @@ class Dataset(Dataset):
             wav = wav + noise_wav
 
 
-def max_seq_length_calculator(c, ap, padding_with_max_length, train_mode, tuple_datasets_and_classes):
+def max_seq_length_calculator(c, ap, padding_with_max_length, train_mode, tuples_dataset_and_class):
     if c.dataset['max_seq_len']:
         return c.dataset['max_seq_len']
     if not padding_with_max_length or not train_mode:
         return None # raise Exception("Properties unavailable")
-    min_len, max_len = _find_min_max_in_wav(c.audio['hop_length'], tuple_datasets_and_classes)
+    min_len, max_len = _find_min_max_in_wav(c.audio['hop_length'], tuples_dataset_and_class)
 
     print("The Max Time dim length is: {} (+- {} seconds)".format(max_len, (
             max_len * c.audio['hop_length']) / ap.sample_rate))
@@ -140,9 +140,9 @@ def _return_list_seq_len(zip_object, hop_length):
     return [_calculate_seq_len_for_dataset(item, hop_length) for item in zip_object]
 
 
-def _find_min_max_in_wav(hop_length, tuple_datasets_and_classes):
-    seq_lens = _return_list_seq_len(tuple_datasets_and_classes, hop_length)
-    # seq_lens = tuple_datasets_and_classes.map(lambda dataset: _calculate_seq_len_for_dataset(dataset, hop_length))
+def _find_min_max_in_wav(hop_length, tuples_dataset_and_class):
+    seq_lens = _return_list_seq_len(tuples_dataset_and_class, hop_length)
+    # seq_lens = tuples_dataset_and_class.map(lambda dataset: _calculate_seq_len_for_dataset(dataset, hop_length))
     return min(seq_lens), max(seq_lens)
 
 
@@ -154,9 +154,9 @@ def _calculate_seq_len_for_wav(wav, hop_length):
     return int((wav.shape[1] / hop_length) + 1)
 
 
-def _load_train_dataset(c, ap, tuple_datasets_and_classes, noise):
+def _load_train_dataset(c, ap, tuples_dataset_and_class, noise):
     return DataLoader(
-        dataset=Dataset(c, ap, tuple_datasets_and_classes, noise),
+        dataset=Dataset(c, ap, tuples_dataset_and_class, noise),
         batch_size=c.train_config['batch_size'],
         shuffle=True,
         num_workers=c.train_config['num_workers'],
@@ -166,27 +166,27 @@ def _load_train_dataset(c, ap, tuple_datasets_and_classes, noise):
         sampler=None)
 
 
-def _load_eval_dataset(c, ap, tuple_datasets_and_classes, noise):
+def _load_eval_dataset(c, ap, tuples_dataset_and_class, noise):
     return DataLoader(
-        dataset=Dataset(c, ap, tuple_datasets_and_classes, noise),
+        dataset=Dataset(c, ap, tuples_dataset_and_class, noise),
         collate_fn=own_collate_fn,
         batch_size=c.test_config['batch_size'],
         shuffle=False,
         num_workers=c.test_config['num_workers'])
 
 
-def _load_test_dataset(c, ap, tuple_datasets_and_classes, noise):
+def _load_test_dataset(c, ap, tuples_dataset_and_class, noise):
     return DataLoader(
-        dataset=Dataset(c, ap, tuple_datasets_and_classes, noise),
+        dataset=Dataset(c, ap, tuples_dataset_and_class, noise),
         collate_fn=teste_collate_fn,
         batch_size=c.test_config['batch_size'],
         shuffle=False,
         num_workers=c.test_config['num_workers'])
 
 
-def _load_inference_dataset(c, ap, tuple_datasets_and_classes, noise):
+def _load_inference_dataset(c, ap, tuples_dataset_and_class, noise):
     return DataLoader(
-        dataset=Dataset(c, ap, tuple_datasets_and_classes, noise),
+        dataset=Dataset(c, ap, tuples_dataset_and_class, noise),
         collate_fn=teste_collate_fn,
         batch_size=c.test_config['batch_size'],
         shuffle=False,
