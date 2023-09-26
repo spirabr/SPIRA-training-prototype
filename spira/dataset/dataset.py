@@ -9,6 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch import stack
 from torch.nn.utils.rnn import pad_sequence
 
+# Todo: fazer enum
 CONTROL_CLASS = 0
 PATIENT_CLASS = 1
 
@@ -17,7 +18,9 @@ class Dataset(Dataset):
     Class for load a train and test from dataset generate by import_librispeech.py and others
     """
 
-    def __init__(self, c, ap, tuples_dataset_and_class, noise):
+    def __init__(self, c, ap, datasets: list[pd.DataFrame], classes: pd.Series, noise):
+        assert (len(datasets) == len(classes), "Datasets and classes should have the same lengths")
+
         # set random seed
         random.seed(c['seed'])
         torch.manual_seed(c['seed'])
@@ -27,26 +30,22 @@ class Dataset(Dataset):
         self.c = c
         self.ap = ap
 
-        self.tuples_dataset_and_class = tuples_dataset_and_class
+        self.tuples_dataset_and_class = zip(datasets, classes)
+        self.datasets = datasets
+        self.classes = classes
+
         self.noise = noise
 
         self.train = False
         self.eval = False
         self.test = False
 
-        self.max_seq_len = max_seq_length_calculator(c, ap, self.c.dataset['padding_with_max_length'], self.train, self.tuples_dataset_and_class)
+        self.max_seq_len = max_seq_length_calculator(c, ap, self.c.dataset['padding_with_max_length'], self.train, self.datasets)
 
     def get_max_seq_length(self):
         return self.max_seq_len
 
-    def __getitem__(self, idx):
-        wav = self.tuples_dataset_and_class[idx][0]
-        class_name = self.tuples_dataset_and_class[idx][1]
-
-        # its assume that noise file is bigger than wav file !!
-        if self.c.data_augmentation['insert_noise']:
-            self._insert_noise(wav, idx, class_name)
-
+    def _get_feature_and_target(self, wav, class_name):
         if self.c.dataset['split_wav_using_overlapping']:
             start_slice = 0
             features = []
@@ -83,10 +82,23 @@ class Dataset(Dataset):
                 target = torch.FloatTensor([class_name])
             else:
                 target = torch.zeros(feature.shape[0], 1) + class_name
-
         return feature, target
 
-    # TODO: Resolver o len(self.datasets (Agora que não estamos usando o datasets, como posso fazer o seguinte?)
+    def __getitem__(self, idx):
+        # TODO: Responder: As duas próximas linhas funcionam para objetos zip?
+        #  Supondo que funcione, é preferível manter a primeira opção?
+        wav = self.tuples_dataset_and_class[idx][0]
+        class_name = self.tuples_dataset_and_class[idx][1]
+
+        # wav = self.datasets[idx]
+        # class_name = self.classes[idx]
+
+        # its assume that noise file is bigger than wav file !!
+        if self.c.data_augmentation['insert_noise']:
+            self._insert_noise(wav, idx, class_name)
+
+        return self._get_feature_and_target(wav, class_name)
+
     def __len__(self):
         return len(self.datasets)
 
@@ -121,42 +133,32 @@ class Dataset(Dataset):
             wav = wav + noise_wav
 
 
-def max_seq_length_calculator(c, ap, padding_with_max_length, train_mode, tuples_dataset_and_class):
+def max_seq_length_calculator(c, ap, padding_with_max_length, train_mode, datasets: list[pd.DataFrame]):
     if c.dataset['max_seq_len']:
         return c.dataset['max_seq_len']
     if not padding_with_max_length or not train_mode:
         return None # raise Exception("Properties unavailable")
-    min_len, max_len = _find_min_max_in_wav(c.audio['hop_length'], tuples_dataset_and_class)
+    min_len, max_len = _find_min_max_in_wav(c.audio['hop_length'], datasets)
 
     print("The Max Time dim length is: {} (+- {} seconds)".format(max_len, (
             max_len * c.audio['hop_length']) / ap.sample_rate))
     print("The Min Time dim length is: {} (+- {} seconds)".format(min_len, (
             min_len * c.audio['hop_length']) / ap.sample_rate))
-
     return max_len
 
 
-def _return_list_seq_len(zip_object, hop_length):
-    return [_calculate_seq_len_for_dataset(item, hop_length) for item in zip_object]
-
-
-def _find_min_max_in_wav(hop_length, tuples_dataset_and_class):
-    seq_lens = _return_list_seq_len(tuples_dataset_and_class, hop_length)
-    # seq_lens = tuples_dataset_and_class.map(lambda dataset: _calculate_seq_len_for_dataset(dataset, hop_length))
+def _find_min_max_in_wav(hop_length, datasets: list[pd.DataFrame]):
+    seq_lens = [_calculate_seq_len_for_wav(dataset, hop_length) for dataset in datasets]
     return min(seq_lens), max(seq_lens)
 
 
-def _calculate_seq_len_for_dataset(dataset, hop_length):
-    return _calculate_seq_len_for_wav(dataset[0], hop_length)
-
-
-def _calculate_seq_len_for_wav(wav, hop_length):
+def _calculate_seq_len_for_wav(wav: pd.DataFrame, hop_length):
     return int((wav.shape[1] / hop_length) + 1)
 
 
-def _load_train_dataset(c, ap, tuples_dataset_and_class, noise):
+def _load_train_dataset(c, ap, datasets: list[pd.DataFrame], classes: pd.Series, noise):
     return DataLoader(
-        dataset=Dataset(c, ap, tuples_dataset_and_class, noise),
+        dataset=Dataset(c, ap, datasets, classes, noise),
         batch_size=c.train_config['batch_size'],
         shuffle=True,
         num_workers=c.train_config['num_workers'],
@@ -166,27 +168,27 @@ def _load_train_dataset(c, ap, tuples_dataset_and_class, noise):
         sampler=None)
 
 
-def _load_eval_dataset(c, ap, tuples_dataset_and_class, noise):
+def _load_eval_dataset(c, ap, datasets: list[pd.DataFrame], classes: pd.Series, noise):
     return DataLoader(
-        dataset=Dataset(c, ap, tuples_dataset_and_class, noise),
+        dataset=Dataset(c, ap, datasets, classes, noise),
         collate_fn=own_collate_fn,
         batch_size=c.test_config['batch_size'],
         shuffle=False,
         num_workers=c.test_config['num_workers'])
 
 
-def _load_test_dataset(c, ap, tuples_dataset_and_class, noise):
+def _load_test_dataset(c, ap, datasets: list[pd.DataFrame], classes: pd.Series, noise):
     return DataLoader(
-        dataset=Dataset(c, ap, tuples_dataset_and_class, noise),
+        dataset=Dataset(c, ap, datasets, classes, noise),
         collate_fn=teste_collate_fn,
         batch_size=c.test_config['batch_size'],
         shuffle=False,
         num_workers=c.test_config['num_workers'])
 
 
-def _load_inference_dataset(c, ap, tuples_dataset_and_class, noise):
+def _load_inference_dataset(c, ap, datasets: list[pd.DataFrame], classes: pd.Series, noise):
     return DataLoader(
-        dataset=Dataset(c, ap, tuples_dataset_and_class, noise),
+        dataset=Dataset(c, ap, datasets, classes, noise),
         collate_fn=teste_collate_fn,
         batch_size=c.test_config['batch_size'],
         shuffle=False,
