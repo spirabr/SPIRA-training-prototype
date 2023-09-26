@@ -5,17 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e7e312-e5f5-4224-9817-b4223d09de5a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/training-pipeline.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/training-pipeline.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/analytics.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/data_extraction.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/data_split.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/feature_engineering.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/hiperparameters_configuration.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/metrics.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/model_pipeline.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/plot.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/training-pipeline/validation.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/dataset/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/dataset/dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/tasks/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/tasks/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,6 +63,7 @@
       <recent name="$PROJECT_DIR$/training-pipeline" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/spira/dataset" />
       <recent name="$PROJECT_DIR$/spira/tasks" />
       <recent name="$PROJECT_DIR$/training-pipeline" />
       <recent name="$PROJECT_DIR$/src" />
@@ -97,10 +91,32 @@
       <workItem from="1693381916774" duration="1205000" />
       <workItem from="1693555916381" duration="11013000" />
       <workItem from="1693825870057" duration="6682000" />
+      <workItem from="1693898589380" duration="631000" />
+      <workItem from="1694002668283" duration="3115000" />
+      <workItem from="1694077445478" duration="11524000" />
+      <workItem from="1694159394223" duration="3669000" />
+      <workItem from="1694422016651" duration="13704000" />
+      <workItem from="1694511540579" duration="1420000" />
+      <workItem from="1694600941682" duration="5720000" />
+      <workItem from="1694678983109" duration="1243000" />
+      <workItem from="1695377291943" duration="3244000" />
+      <workItem from="1695387309222" duration="2137000" />
+      <workItem from="1695728327374" duration="3002000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
