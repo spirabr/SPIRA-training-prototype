@@ -19,18 +19,21 @@ audio_processor = AudioProcessor()
 # todo: Fazer as próprias exceções
 
 
-def check_config_is_valid(config: SpiraConfig) -> [bool, str]:
+def validate_config_is_valid(config: SpiraConfig):
     if config.padding_with_max_length ^ config.split_wav_using_overlapping:
-        return [False,
-                "You cannot use the padding_with_max_length option in conjunction with the split_wav_using_overlapping option, disable one of them !!"]
+        RuntimeError("You cannot use the padding_with_max_length option in conjunction with the split_wav_using_overlapping option, disable one of them !!")
 
 
-def check_files_exist(config: SpiraConfig) -> [bool, str]:
+def validate_files_exist(config: SpiraConfig):
     if os.path.isfile(config.noise_csv):
-        return [False, "Noise CSV file don't exists! Fix it in config.json"]
+        FileExistsError("Noise CSV file don't exists! Fix it in config.json")
     if os.path.isfile(config.dataset_csv):
-        return [False, "Test or Train CSV file don't exists! Fix it in config.json"]
+        FileExistsError("Test or Train CSV file don't exists! Fix it in config.json")
 
+
+def validate_datasets_and_classes_are_compatible(file_list: pd.Series, classes: pd.Series):
+    if len(file_list) != len(classes):
+        RuntimeError("Dataset and classes have different lengths")
 
 def read_list_csv(path: Path) -> pd.DataFrame:
     return pd.read_csv(path, sep=',')
@@ -40,11 +43,9 @@ def read_wav_from_list(file_list: pd.DataFrame) -> list[pd.DataFrame]:
     return file_list.map(lambda file: audio_processor.load_wav(file))
 
 
-def load_spira_datasets_and_classes(dataset_csv_path: Path) -> list[[pd.DataFrame, str]]:
+def load_dataset_list(dataset_csv_path: Path) -> [pd.Series, pd.Series]:
     dataset_list = read_list_csv(dataset_csv_path)
-    datasets = read_wav_from_list(dataset_list[0])
-    classes = dataset_list[1]
-    return zip(datasets, classes)
+    return dataset_list[0], dataset_list[1]
 
 
 def load_spira_datasets(dataset_csv_path: Path) -> list[pd.DataFrame]:
@@ -57,16 +58,11 @@ def load_spira_noise(noise_csv_path: Path) -> list[pd.DataFrame]:
     return read_wav_from_list(noise_list)
 
 
-is_config_valid = check_config_is_valid(config)
-if not is_config_valid[0]:
-    raise RuntimeError(is_config_valid[1])
-
-do_files_exist = check_files_exist(config)
-if not do_files_exist[0]:
-    raise FileExistsError(do_files_exist[1])
-
-check_files_exist(config)
-tuples_dataset_and_class = load_spira_datasets_and_classes(config.dataset_csv)
+validate_config_is_valid(config)
+validate_files_exist(config)
+file_list, classes = load_dataset_list(config.dataset_csv)
+validate_datasets_and_classes_are_compatible(file_list, classes)
+datasets = read_wav_from_list(file_list)
 noise = load_spira_noise(config.noise_csv)
 
 ###### Data extraction ######
