@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 import torch
 import torch.nn as nn
 
-from spira.utils.mish import Mish
 from spira.training.config import SpiraConfig
+from spira.utils.mish import Mish
 
 
 # Template method
@@ -67,8 +67,7 @@ class SpiraModel(ABC):
         pass
 
 
-
-class SpiraModelWithMaxLengthPadding(SpiraModel):
+class MaxLengthPaddingModel(SpiraModel):
     ### I'm not sure about: conv: torch.nn.modules.container.Sequential
     ### Could be only torch.nn.Sequential
     def _build_fc1(self, config: SpiraConfig, conv: torch.nn.modules.container.Sequential):
@@ -87,8 +86,7 @@ class SpiraModelWithMaxLengthPadding(SpiraModel):
         return x.view(x.size(0), -1)
 
 
-
-class SpiraModelWithoutMaxLengthPadding(SpiraModel):
+class NoMaxLengthPaddingModel(SpiraModel):
     ### I'm not sure about: conv: torch.nn.modules.container.Sequential
     ### Could be only torch.nn.Sequential
     def _build_fc1(self, config: SpiraConfig, conv: torch.nn.modules.container.Sequential):
@@ -104,5 +102,5 @@ class SpiraModelWithoutMaxLengthPadding(SpiraModel):
 
 def build_spira_model(config: SpiraConfig) -> SpiraModel:
     if config.padding_with_max_length:
-        return SpiraModelWithMaxLengthPadding(config)
-    return SpiraModelWithoutMaxLengthPadding(config)
+        return MaxLengthPaddingModel(config)
+    return NoMaxLengthPaddingModel(config)
