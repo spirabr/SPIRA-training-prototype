@@ -9,9 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch import stack
 from torch.nn.utils.rnn import pad_sequence
 
-# Todo: fazer enum
-CONTROL_CLASS = 0
-PATIENT_CLASS = 1
+from spira.enum import ClassName
 
 WAV = pd.DataFrame
 
@@ -96,9 +94,9 @@ class Dataset(Dataset):
         return wav
 
     def _define_num_noise(self, class_name: int) -> int:
-        if class_name == CONTROL_CLASS:
+        if class_name == ClassName.CONTROL_CLASS.value:
             return self.c.data_augmentation['num_noise_control']
-        if class_name == PATIENT_CLASS:
+        if class_name == ClassName.PATIENT_CLASS.value:
             return self.c.data_augmentation['num_noise_patient']
 
     # TODO: Decide if _calculate_noise_wav is a good function name
