@@ -85,7 +85,7 @@ class MaxLengthPaddingModel(Model):
         # it's very useful because if you change the convolutional architecture the model calculate its, and you don't need change this :)
         # I prefer activate the network in toy example because is easier than calculate the conv output
         # get zeros input
-        inp = torch.zeros(1, 1, config.max_seq_len, config.num_feature)
+        inp = torch.zeros(1, 1, config.dataset.max_seq_len, config.num_features())
         # get out shape
         toy_activation_shape = self.conv(inp).shape
         # set fully connected input dim
@@ -114,6 +114,6 @@ class NoMaxLengthPaddingModel(Model):
 
 
 def build_spira_model(config: Config) -> Model:
-    if config.padding_with_max_length:
+    if config.dataset.padding_with_max_length:
         return MaxLengthPaddingModel(config)
     return NoMaxLengthPaddingModel(config)
