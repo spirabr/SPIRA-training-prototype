@@ -5,10 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e7e312-e5f5-4224-9817-b4223d09de5a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/training-pipeline.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/training-pipeline.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/dataset/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/dataset/dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/dataset/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/dataset/audio_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/services/audio_processing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/dataset/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/enum.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/enum.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/spira.json" beforeDir="false" afterPath="$PROJECT_DIR$/spira/spira.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spira/tasks/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/tasks/train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/training/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/training/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/adapter/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/training/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/utils/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/utils/mish.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/mish.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,11 +39,20 @@
       </list>
     </option>
   </component>
+  <component name="FormatOnSaveOptions">
+    <option name="myRunOnSave" value="true" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/spira/tasks/train.py" root0="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
+  </component>
+  <component name="OptimizeOnSaveOptions">
+    <option name="myRunOnSave" value="true" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
@@ -48,10 +73,12 @@
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;full.screen.before.presentation.mode&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/daniel/training-pipeline/training-pipeline&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/daniel/training-pipeline&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.standard&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.standard&quot;: &quot;&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
@@ -60,14 +87,29 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/training-pipeline" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/spira/dataset" />
+      <recent name="$PROJECT_DIR$/spira" />
       <recent name="$PROJECT_DIR$/spira/tasks" />
-      <recent name="$PROJECT_DIR$/training-pipeline" />
-      <recent name="$PROJECT_DIR$/src" />
+      <recent name="$PROJECT_DIR$/spira/core/domain" />
+      <recent name="$PROJECT_DIR$/spira/adapter" />
+      <recent name="$PROJECT_DIR$/spira/core/services" />
     </key>
+  </component>
+  <component name="RunManager" selected="Makefile Target.start">
+    <configuration name="build" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="build" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Makefile Target.build" />
+      <item itemvalue="Makefile Target.start" />
+      <item itemvalue="Python.spira.tasks.train" />
+    </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -101,7 +143,28 @@
       <workItem from="1694678983109" duration="1243000" />
       <workItem from="1695377291943" duration="3244000" />
       <workItem from="1695387309222" duration="2137000" />
-      <workItem from="1695728327374" duration="3002000" />
+      <workItem from="1695728327374" duration="4008000" />
+      <workItem from="1695978123379" duration="1286000" />
+      <workItem from="1696158915760" duration="4312000" />
+      <workItem from="1696240225019" duration="1199000" />
+      <workItem from="1696318860726" duration="1233000" />
+      <workItem from="1696324389511" duration="1000" />
+      <workItem from="1696497448697" duration="5828000" />
+      <workItem from="1696530698428" duration="2383000" />
+      <workItem from="1696867437955" duration="604000" />
+      <workItem from="1696928680101" duration="7496000" />
+      <workItem from="1697100306367" duration="610000" />
+      <workItem from="1697184165919" duration="17881000" />
+      <workItem from="1697445892309" duration="744000" />
+      <workItem from="1697447248650" duration="22860000" />
+      <workItem from="1698050796066" duration="1833000" />
+      <workItem from="1698137663742" duration="4103000" />
+      <workItem from="1698236962845" duration="600000" />
+      <workItem from="1698311571338" duration="3629000" />
+      <workItem from="1698749727186" duration="1444000" />
+      <workItem from="1698756703397" duration="14883000" />
+      <workItem from="1698781910093" duration="3492000" />
+      <workItem from="1698827075457" duration="1307000" />
     </task>
     <servers />
   </component>
@@ -118,5 +181,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/training_pipeline$config.coverage" NAME="config Coverage Results" MODIFIED="1697462453426" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/spira/adapter" />
+    <SUITE FILE_PATH="coverage/training_pipeline$spira_tasks_train.coverage" NAME="spira.tasks.train Coverage Results" MODIFIED="1698768593660" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

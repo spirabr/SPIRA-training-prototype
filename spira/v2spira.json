@@ -7,17 +7,16 @@
     "step": 1,
     "padding_with_max_length": false,
     "max_seq_len": 401,
-    "max_seq_len": 401,
     "eval_csv": "../SPIRA_Dataset_V2/metadata_eval.csv",
-    "eval_data_root_path": "../SPIRA_Dataset_V2/",
+    // "eval_data_root_path": "../SPIRA_Dataset_V2/",
     "test_csv": "../SPIRA_Dataset_V2/metadata_test.csv",
-    "test_data_root_path": "../SPIRA_Dataset_V2/",
+    // "test_data_root_path": "../SPIRA_Dataset_V2/",
     "inf_csv": "./resources/datasets/input.csv",
-    "inf_data_root_path": "./resources/datasets/",
-    "noise_csv": "./resources/datasets/Ruidos-Hospitalares/noise_data.csv",
-    "noise_data_root_path": "./resources/datasets/Ruidos-Hospitalares/",
-    "control_class": 0,
-    "patient_class": 1
+    // "inf_data_root_path": "./resources/datasets/",
+    "noise_csv": "./resources/datasets/Ruidos-Hospitalares/noise_data.csv"
+    // "noise_data_root_path":"./resources/datasets/Ruidos-Hospitalares/",
+    //"control_class": 0,
+    //"patient_class": 1
   },
   "model": {
     "fc1_dim": 100,
@@ -33,6 +32,7 @@
   "test_config": {
     "batch_size": 10,
     "num_workers": 8
+    //Changed due to system limitations. Rollback for deploy
   },
   "audio": {
     "feature": "mfcc",

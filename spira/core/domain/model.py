@@ -3,13 +3,13 @@ from abc import ABC, abstractmethod
 import torch
 import torch.nn as nn
 
-from spira.training.config import SpiraConfig
-from spira.utils.mish import Mish
+from spira.adapter.config import Config
+from spira.core.domain.mish import Mish
 
 
 # Template method
-class SpiraModel(ABC):
-    def __init__(self, config: SpiraConfig):
+class Model(ABC):
+    def __init__(self, config: Config):
         self.config = config
         self.num_features = config.num_features()
         self.mish = Mish()
@@ -39,16 +39,27 @@ class SpiraModel(ABC):
         convs = [
             # cnn1
             nn.Conv2d(1, 32, kernel_size=(7, 1), dilation=(2, 1)),
-            nn.GroupNorm(16, 32), self.mish, nn.MaxPool2d(kernel_size=(2, 1)), nn.Dropout(p=0.7),
+            nn.GroupNorm(16, 32),
+            self.mish,
+            nn.MaxPool2d(kernel_size=(2, 1)),
+            nn.Dropout(p=0.7),
             # cnn2
             nn.Conv2d(32, 16, kernel_size=(5, 1), dilation=(2, 1)),
-            nn.GroupNorm(8, 16), self.mish, nn.MaxPool2d(kernel_size=(2, 1)), nn.Dropout(p=0.7),
+            nn.GroupNorm(8, 16),
+            self.mish,
+            nn.MaxPool2d(kernel_size=(2, 1)),
+            nn.Dropout(p=0.7),
             # cnn3
             nn.Conv2d(16, 8, kernel_size=(3, 1), dilation=(2, 1)),
-            nn.GroupNorm(4, 8), self.mish, nn.MaxPool2d(kernel_size=(2, 1)), nn.Dropout(p=0.7),
+            nn.GroupNorm(4, 8),
+            self.mish,
+            nn.MaxPool2d(kernel_size=(2, 1)),
+            nn.Dropout(p=0.7),
             # cnn4
             nn.Conv2d(8, 4, kernel_size=(2, 1), dilation=(1, 1)),
-            nn.GroupNorm(2, 4), self.mish, nn.Dropout(p=0.7)
+            nn.GroupNorm(2, 4),
+            self.mish,
+            nn.Dropout(p=0.7),
         ]
         return nn.Sequential(*convs)
 
@@ -56,7 +67,7 @@ class SpiraModel(ABC):
     def _build_fc1(self, config, conv):
         pass
 
-    def _build_fc2(self, config: SpiraConfig):
+    def _build_fc2(self, config: Config):
         return nn.Linear(config.model.fc1_dim, config.model.fc2_dim)
 
     def _define_dropout(self):
@@ -67,10 +78,10 @@ class SpiraModel(ABC):
         pass
 
 
-class MaxLengthPaddingModel(SpiraModel):
+class MaxLengthPaddingModel(Model):
     ### I'm not sure about: conv: torch.nn.modules.container.Sequential
     ### Could be only torch.nn.Sequential
-    def _build_fc1(self, config: SpiraConfig, conv: torch.nn.modules.container.Sequential):
+    def _build_fc1(self, config: Config, conv: torch.nn.modules.container.Sequential):
         # it's very useful because if you change the convolutional architecture the model calculate its, and you don't need change this :)
         # I prefer activate the network in toy example because is easier than calculate the conv output
         # get zeros input
@@ -78,7 +89,9 @@ class MaxLengthPaddingModel(SpiraModel):
         # get out shape
         toy_activation_shape = self.conv(inp).shape
         # set fully connected input dim
-        fc1_input_dim = toy_activation_shape[1] * toy_activation_shape[2] * toy_activation_shape[3]
+        fc1_input_dim = (
+            toy_activation_shape[1] * toy_activation_shape[2] * toy_activation_shape[3]
+        )
         return nn.Linear(fc1_input_dim, config.model.fc1_dim)
 
     def _reshape_x(self, x):
@@ -86,10 +99,10 @@ class MaxLengthPaddingModel(SpiraModel):
         return x.view(x.size(0), -1)
 
 
-class NoMaxLengthPaddingModel(SpiraModel):
+class NoMaxLengthPaddingModel(Model):
     ### I'm not sure about: conv: torch.nn.modules.container.Sequential
     ### Could be only torch.nn.Sequential
-    def _build_fc1(self, config: SpiraConfig, conv: torch.nn.modules.container.Sequential):
+    def _build_fc1(self, config: Config, conv: torch.nn.modules.container.Sequential):
         # dynamic calculation num_feature, it's useful if you use max-pooling or other pooling in feature dim, and this model don't break
         inp = torch.zeros(1, 1, 500, self.num_features)
         # get out shape
@@ -100,7 +113,7 @@ class NoMaxLengthPaddingModel(SpiraModel):
         return x.view(x.size(0), x.size(1), -1)
 
 
-def build_spira_model(config: SpiraConfig) -> SpiraModel:
+def build_spira_model(config: Config) -> Model:
     if config.padding_with_max_length:
         return MaxLengthPaddingModel(config)
     return NoMaxLengthPaddingModel(config)

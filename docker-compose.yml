@@ -4,11 +4,10 @@ services:
   trainer:
     build:
       context: .
+    entrypoint: "when-changed -s -r ./spira 'poetry run python -m spira.tasks.train'"
     profiles:
       - "dev"
     image: "spira-training"
-    entrypoint: "python training-pipeline/model_pipeline.py"
     volumes:
       - ".:/app/"
-    ports:
-      - "3000:8000"
+      - "/app/.venv"
