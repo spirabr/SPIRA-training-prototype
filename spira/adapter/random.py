@@ -1,10 +1,12 @@
 import random
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import torch
 from typing_extensions import Self
+
+from spira.core.domain.enum import OperationMode
 
 
 class Random(ABC):
@@ -34,10 +36,20 @@ class Random(ABC):
 
 class TrainRandom(Random):
     def create_random(self, seed) -> Random:
-        return self
+        return cast(Random, self)
 
 
 class TestRandom(Random):
     def create_random(self, seed) -> Random:
         new_seed = self.seed * seed
-        return Random(seed=new_seed)
+        return cast(Random, TestRandom(seed=new_seed))
+
+
+def initialize_random(config, operation_mode) -> Random:
+    match operation_mode:
+        case OperationMode.TRAIN:
+            return TrainRandom(config.seed)
+        case OperationMode.TEST:
+            return TestRandom(config.seed)
+        case _:
+            raise RuntimeError("You must configure the operation mode to train or test")
