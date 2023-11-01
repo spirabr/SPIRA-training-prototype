@@ -5,26 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e7e312-e5f5-4224-9817-b4223d09de5a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/training-pipeline.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/training-pipeline.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/dataset/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/dataset/audio_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/services/audio_processing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/dataset/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/enum.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/enum.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/audio.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/audio.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/services/audio_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/services/audio_processing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spira/spira.json" beforeDir="false" afterPath="$PROJECT_DIR$/spira/spira.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/spira_original.json" beforeDir="false" afterPath="$PROJECT_DIR$/spira/spira_original.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spira/tasks/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/tasks/train.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/training/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/training/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/adapter/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/training/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/utils/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spira/utils/mish.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/mish.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -164,7 +150,7 @@
       <workItem from="1698749727186" duration="1444000" />
       <workItem from="1698756703397" duration="14883000" />
       <workItem from="1698781910093" duration="3492000" />
-      <workItem from="1698827075457" duration="1307000" />
+      <workItem from="1698827075457" duration="12191000" />
     </task>
     <servers />
   </component>
