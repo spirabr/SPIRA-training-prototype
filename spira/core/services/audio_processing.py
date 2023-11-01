@@ -1,9 +1,8 @@
-from pathlib import Path
-
 import torchaudio  # type: ignore
 from torchaudio.transforms import MFCC, Resample  # type: ignore
 
 from spira.adapter.config import ConfigAudio
+from spira.adapter.valid_path import ValidPath
 from spira.core.domain.audio import Audio
 
 """
@@ -53,7 +52,7 @@ class AudioProcessor(object):
     def get_feature_from_audio(self, wav):
         return self.wav2feature(wav)
 
-    def load_audio(self, path: Path) -> Audio:
+    def load_audio(self, path: ValidPath) -> Audio:
         wav, sample_rate = torchaudio.load(path, normalize=self.normalize)
 
         # resample audio for specific samplerate
@@ -63,6 +62,5 @@ class AudioProcessor(object):
 
         return Audio(wav)
 
-    # todo: Validar com renato se a mudança faz sentido
-    def load_audio_from_list(self, path_list: list[Path]) -> list[Audio]:
-        return [self.load_audio(file) for file in path_list]
+    def load_audios(self, paths: list[ValidPath]) -> list[Audio]:
+        return [self.load_audio(path) for path in paths]
