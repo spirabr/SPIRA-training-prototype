@@ -1,70 +1,40 @@
-import json
-from pathlib import Path
-
 from spira.adapter.config import load_config
-from spira.adapter.random_adapter import Random, TestRandom, TrainRandom
-from spira.adapter.read_data import (
-    read_noises_list_csv,
-    read_patients_and_controls_list_csv,
-)
+from spira.adapter.random import initialize_random
+from spira.adapter.valid_path import ValidPath, read_valid_paths_from_csv
 from spira.core.domain.enum import OperationMode
 from spira.core.domain.model import build_spira_model
 from spira.core.domain.noise_generator import NoiseGenerator
 from spira.core.services.audio_processing import AudioProcessor
 from spira.core.services.data_augmentation_service import generate_noisy_audios
-from spira.core.services.error_validation import (
-    validate_config_is_valid,
-    validate_files_exist,
-)
+
+# dividir em duas partes inicializacao e runtime.
+# iniciali\acao: try catch - Lendo os roles
+# Ja as excecoes durante o processamento/runtime a gente pensa de outra maneira.
 
 ###### Pre-config #####
 
-config_path = Path("/app/spira/spira.json")
-
-with open(config_path, "r") as file:
-    config_json = json.load(file)
-
-print(config_json)
-
-config = load_config(config_json)
+config_path = ValidPath("/app/spira/spira.json")
+config = load_config(config_path)
 
 operation_mode = OperationMode.TRAIN
 
-validate_config_is_valid(config)
-validate_files_exist(config)
-
 audio_processor = AudioProcessor(config.audio)
-
 
 ###### Data extraction ######
 
-patients_list, controls_list = read_patients_and_controls_list_csv(
-    config.dataset.test_csv
-)
-# todo: não sei como fazer essa função
-noises_list = read_noises_list_csv(config.dataset.noise_csv)
+patients_paths = read_valid_paths_from_csv(config.dataset.patients_csv)
+controls_paths = read_valid_paths_from_csv(config.dataset.controls_csv)
+noises_paths = read_valid_paths_from_csv(config.dataset.noises_csv)
 
 
 ###### Feature engineering ######
 
-patients = audio_processor.load_audio_from_list(patients_list)
-controls = audio_processor.load_audio_from_list(controls_list)
-noises = audio_processor.load_audio_from_list(noises_list)
-
-
-def initialize_random(config, operation_mode) -> Random:
-    match operation_mode:
-        case OperationMode.TRAIN:
-            return TrainRandom(config.seed)
-        case OperationMode.TEST:
-            return TestRandom(config.seed)
-        case _:
-            raise RuntimeError("Bla")
-
+patients = audio_processor.load_audios(patients_paths)
+controls = audio_processor.load_audios(controls_paths)
+noises = audio_processor.load_audios(noises_paths)
 
 randomizer = initialize_random(config, operation_mode)
 
-# todo: validar com renato o uso de NoiseGenerator e não uso do Random no generate_noisy...
 noise_generator = NoiseGenerator(
     noises,
     config.data_augmentation.noise_min_amp,
