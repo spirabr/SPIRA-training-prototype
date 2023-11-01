@@ -1,4 +1,3 @@
-from spira.adapter.random_adapter import Random
 from spira.core.domain.audio import Audio
 from spira.core.domain.noise_generator import NoiseGenerator
 
@@ -12,7 +11,7 @@ def generate_noisy_audios(
         )
 
     return [
-        combine_audio_with_noise(patient, idx) for patient, idx in enumerate(audios)
+        combine_audio_with_noise(patient, idx) for idx, patient in enumerate(audios)
     ]
 
 
