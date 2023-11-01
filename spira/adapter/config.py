@@ -1,7 +1,9 @@
-from pathlib import Path
+import json
 
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
+
+from spira.adapter.valid_path import ValidPath
 
 
 @dataclass
@@ -11,16 +13,12 @@ class ConfigDataset:
     step: int
     padding_with_max_length: bool
     max_seq_len: int
-    eval_csv: Path
-    eval_data_root_path: Path
-    test_csv: Path
-    test_data_root_path: Path
-    inf_csv: Path
-    inf_data_root_path: Path
-    noise_csv: Path
-    noise_data_root_path: Path
-    control_class: int
-    patient_class: int
+    # eval_csv: ValidPath
+    # test_csv: ValidPath
+    # inf_csv: ValidPath
+    patients_csv: ValidPath
+    controls_csv: ValidPath
+    noises_csv: ValidPath
 
 
 @dataclass
@@ -79,7 +77,9 @@ class Config(BaseModel):
         return None
 
 
-def load_config(config_json) -> Config:
+def read_config(config_path: ValidPath) -> Config:
+    with open(config_path, "r") as file:
+        config_json = json.load(file)
     return Config(
         model_name=config_json["model_name"],
         seed=config_json["seed"],
@@ -91,14 +91,18 @@ def load_config(config_json) -> Config:
     )
 
 
-# def load_config(config_path: Path) -> Config:
-#     config_json = json.loads(str(config_path))
-#     return Config(
-#         model_name=config_json["model_name"],
-#         seed=config_json["seed"],
-#         dataset=config_json["dataset"],
-#         model=config_json["model"],
-#         data_augmentation=config_json["data_augmentation"],
-#         test_config=config_json["test_config"],
-#         audio=config_json["audio"],
-#     )
+def validate_alternative_options_or_raise(config: Config):
+    # xor operator - just one of these should be available
+    if (
+        config.dataset.padding_with_max_length
+        ^ config.dataset.split_wav_using_overlapping
+    ):
+        RuntimeError(
+            "You cannot use the padding_with_max_length option in conjunction with the split_wav_using_overlapping option, disable one of them !!"
+        )
+
+
+def load_config(config_path: ValidPath) -> Config:
+    config = read_config(config_path)
+    validate_alternative_options_or_raise(config)
+    return config
