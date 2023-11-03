@@ -5,7 +5,7 @@ from spira.core.domain.enum import OperationMode
 from spira.core.domain.model import build_spira_model
 from spira.core.domain.noise_generator import NoiseGenerator
 from spira.core.services.audio_processing import AudioProcessor
-from spira.core.services.data_augmentation_service import generate_noisy_audios
+from spira.core.services.data_augmentation import generate_noisy_audios
 
 # dividir em duas partes inicializacao e runtime.
 # iniciali\acao: try catch - Lendo os roles
@@ -13,7 +13,7 @@ from spira.core.services.data_augmentation_service import generate_noisy_audios
 
 ###### Pre-config #####
 
-config_path = ValidPath("/app/spira/spira.json")
+config_path = ValidPath.from_str("/app/spira/spira.json")
 config = load_config(config_path)
 
 operation_mode = OperationMode.TRAIN
@@ -56,6 +56,9 @@ noisy_controls = generate_noisy_audios(
 
 ###### Hyperparameters configuration #####
 model = build_spira_model(config)
+print(model.conv)
+
+# TODO: Como o edresson fez o fit? Ver no código dele
 
 ##### Train the model #####
 
