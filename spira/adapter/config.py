@@ -80,15 +80,7 @@ class Config(BaseModel):
 def read_config(config_path: ValidPath) -> Config:
     with open(config_path, "r") as file:
         config_json = json.load(file)
-    return Config(
-        model_name=config_json["model_name"],
-        seed=config_json["seed"],
-        dataset=config_json["dataset"],
-        model=config_json["model"],
-        data_augmentation=config_json["data_augmentation"],
-        test_config=config_json["test_config"],
-        audio=config_json["audio"],
-    )
+    return Config(**config_json)
 
 
 def validate_alternative_options_or_raise(config: Config):
