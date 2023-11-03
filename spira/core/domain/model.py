@@ -64,13 +64,13 @@ class Model(ABC):
         return nn.Sequential(*convs)
 
     @abstractmethod
-    def _build_fc1(self, config, conv):
+    def _build_fc1(self, config, conv) -> nn.Linear:
         pass
 
-    def _build_fc2(self, config: Config):
+    def _build_fc2(self, config: Config) -> nn.Linear:
         return nn.Linear(config.model.fc1_dim, config.model.fc2_dim)
 
-    def _define_dropout(self):
+    def _define_dropout(self) -> nn.Dropout:
         return nn.Dropout(p=0.7)
 
     @abstractmethod
@@ -79,9 +79,7 @@ class Model(ABC):
 
 
 class MaxLengthPaddingModel(Model):
-    ### I'm not sure about: conv: torch.nn.modules.container.Sequential
-    ### Could be only torch.nn.Sequential
-    def _build_fc1(self, config: Config, conv: torch.nn.modules.container.Sequential):
+    def _build_fc1(self, config: Config, conv: torch.nn.modules.container.Sequential) -> nn.Linear:
         # it's very useful because if you change the convolutional architecture the model calculate its, and you don't need change this :)
         # I prefer activate the network in toy example because is easier than calculate the conv output
         # get zeros input
@@ -100,9 +98,7 @@ class MaxLengthPaddingModel(Model):
 
 
 class NoMaxLengthPaddingModel(Model):
-    ### I'm not sure about: conv: torch.nn.modules.container.Sequential
-    ### Could be only torch.nn.Sequential
-    def _build_fc1(self, config: Config, conv: torch.nn.modules.container.Sequential):
+    def _build_fc1(self, config: Config, conv: torch.nn.modules.container.Sequential) -> nn.Linear:
         # dynamic calculation num_feature, it's useful if you use max-pooling or other pooling in feature dim, and this model don't break
         inp = torch.zeros(1, 1, 500, self.num_features)
         # get out shape
