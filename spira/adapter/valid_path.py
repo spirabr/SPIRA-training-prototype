@@ -1,16 +1,38 @@
 import os
 from os import PathLike
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
+from pydantic import BaseModel, model_serializer, model_validator
 
 
-class ValidPath(PathLike[str]):
-    def __init__(self, unvalidated_path: str):
-        self.path = create_valid_path(unvalidated_path)
+class ValidPath(BaseModel, PathLike[str]):
+    path: Path
 
     def __fspath__(self):
+        return str(self.path)
+
+    def __str__(self):
+        return str(self.path)
+
+    @classmethod
+    def from_str(cls, data: str):
+        return ValidPath.model_construct(path=create_valid_path(data))
+
+    @model_serializer()
+    def write(self) -> Path:
         return self.path
+
+
+    @model_validator(mode="before")
+    @classmethod
+    def read(cls, data: Any) -> dict[str, Path]:
+        if isinstance(data, str):
+            return {"path": create_valid_path(data)}
+        if isinstance(data, dict):
+            return data
+        raise RuntimeError("Path should be a string.")
 
 
 def check_file_exists(path: Path) -> bool:
@@ -29,4 +51,8 @@ def create_valid_path(unvalidated_path: str) -> Path:
 
 
 def read_valid_paths_from_csv(csv_path: ValidPath) -> list[ValidPath]:
-    return pd.read_csv(csv_path, sep=",").map(ValidPath).to_list
+    df = pd.read_csv(str(csv_path), header=None, sep=",")
+    # We are assuming the first column is the paths column
+    paths_list = df[0].tolist()
+    valid_paths_list = [ValidPath.from_str(path) for path in paths_list]
+    return valid_paths_list
