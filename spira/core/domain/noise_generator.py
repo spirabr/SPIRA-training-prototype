@@ -1,7 +1,8 @@
-import torch
 from functools import reduce
 
-from spira.adapter.random_adapter import Random
+import torch
+
+from spira.adapter.random import Random
 from spira.core.domain.audio import Audio
 
 
@@ -20,6 +21,7 @@ class NoiseGenerator:
 
     def create_noise_generator(self, extra_seed):
         return NoiseGenerator(
+            self.noises,
             self.noise_min_amp,
             self.noise_max_amp,
             self.randomizer.create_random(extra_seed),
