@@ -53,7 +53,7 @@ class AudioProcessor(object):
         return self.wav2feature(wav)
 
     def load_audio(self, path: ValidPath) -> Audio:
-        wav, sample_rate = torchaudio.load(path, normalize=self.normalize)
+        wav, sample_rate = torchaudio.load(str(path), normalize=self.normalize)
 
         # resample audio for specific samplerate
         if sample_rate != self.sample_rate:
