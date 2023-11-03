@@ -7,9 +7,9 @@
     "step": 1,
     "padding_with_max_length": false,
     "max_seq_len": 401,
-    "patients_csv": "./resources/datasets/patients.csv",
-    "controls_csv": "./resources/datasets/controls.csv",
-    "noises_csv": "./resources/datasets/noises.csv"
+    "patients_csv": "/app/resources/patients.csv",
+    "controls_csv": "/app/resources/controls.csv",
+    "noises_csv": "/app/resources/noises.csv"
   },
   "model": {
     "fc1_dim": 100,
