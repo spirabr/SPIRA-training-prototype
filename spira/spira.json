@@ -1,5 +1,4 @@
 {
-  "model_name": "spiraconv_v2",
   "seed": 42,
   "dataset": {
     "split_wav_using_overlapping": true,
@@ -12,6 +11,7 @@
     "noises_csv": "/app/resources/noises.csv"
   },
   "model": {
+    "name": "spiraconv_v2",
     "fc1_dim": 100,
     "fc2_dim": 1
   },
