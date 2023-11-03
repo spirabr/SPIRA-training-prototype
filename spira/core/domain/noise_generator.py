@@ -43,7 +43,7 @@ class NoiseGenerator:
         chosen_noises = self.randomizer.choose_n_elements(reshaped_noises, num_samples)
 
         return reduce(
-            lambda noise, accumulated_noise: noise + accumulated_noise, chosen_noises
+            lambda noise, accumulated_noise: noise.wav + accumulated_noise.wav, chosen_noises
         )
 
     def _reshape_audio(
