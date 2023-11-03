@@ -23,6 +23,7 @@ class ConfigDataset:
 
 @dataclass
 class ConfigModel:
+    name: str
     fc1_dim: int
     fc2_dim: int
 
@@ -59,7 +60,6 @@ class ConfigAudio:
 
 
 class Config(BaseModel):
-    model_name: str
     seed: int
     dataset: ConfigDataset
     model: ConfigModel
