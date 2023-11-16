@@ -4,7 +4,7 @@ from spira.core.domain.noise_generator import NoiseGenerator
 
 def generate_noisy_audios(
     audios: list[Audio], num_noise: int, base_noise_generator: NoiseGenerator
-):
+) -> list[Audio]:
     def combine_audio_with_noise(patient: Audio, seed: int):
         return _combine_audios_with_noise(
             patient, seed, base_noise_generator, num_noise

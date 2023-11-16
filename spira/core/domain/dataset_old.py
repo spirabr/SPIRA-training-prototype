@@ -3,11 +3,11 @@ import random
 import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import Dataset, DataLoader
 from torch import stack
 from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import DataLoader, Dataset
 
-from spira.core.domain.enum import ClassName, WavType
+from spira.core.domain.enum import ClassName
 
 
 class Dataset(Dataset):
