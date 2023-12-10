@@ -1,7 +1,7 @@
 import torchaudio  # type: ignore
 from torchaudio.transforms import MFCC, Resample  # type: ignore
 
-from spira.adapter.config import ConfigAudio
+from spira.adapter.config import AudioConfig
 from spira.adapter.valid_path import ValidPath
 from spira.core.domain.audio import Audio
 
@@ -12,7 +12,7 @@ Responsible to process the audio input,
 
 
 class AudioProcessor(object):
-    def __init__(self, config_audio: ConfigAudio):
+    def __init__(self, config_audio: AudioConfig):
         self.feature = config_audio.feature
         self.num_mels = config_audio.num_mels
         self.num_mfcc = config_audio.num_mfcc

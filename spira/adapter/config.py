@@ -7,7 +7,7 @@ from spira.adapter.valid_path import ValidPath
 
 
 @dataclass
-class ConfigDataset:
+class DatasetConfig:
     split_wav_using_overlapping: bool
     window_len: int
     step: int
@@ -22,14 +22,14 @@ class ConfigDataset:
 
 
 @dataclass
-class ConfigModel:
+class ModelConfig:
     name: str
     fc1_dim: int
     fc2_dim: int
 
 
 @dataclass
-class ConfigDataAugmentation:
+class DataAugmentationConfig:
     insert_noise: bool
     num_noise_control: int
     num_noise_patient: int
@@ -38,13 +38,13 @@ class ConfigDataAugmentation:
 
 
 @dataclass
-class ConfigTestConfig:
+class TestConfig:
     batch_size: int
     num_workers: int
 
 
 @dataclass
-class ConfigAudio:
+class AudioConfig:
     feature: str
     sample_rate: int
     normalize: bool
@@ -61,11 +61,11 @@ class ConfigAudio:
 
 class Config(BaseModel):
     seed: int
-    dataset: ConfigDataset
-    model: ConfigModel
-    data_augmentation: ConfigDataAugmentation
-    test_config: ConfigTestConfig
-    audio: ConfigAudio
+    dataset: DatasetConfig
+    model: ModelConfig
+    data_augmentation: DataAugmentationConfig
+    test_config: TestConfig
+    audio: AudioConfig
 
     def num_features(self):
         if self.audio.feature == "spectrogram":

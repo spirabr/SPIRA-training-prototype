@@ -1,6 +1,7 @@
 from spira.adapter.config import load_config
 from spira.adapter.random import initialize_random
 from spira.adapter.valid_path import ValidPath, read_valid_paths_from_csv
+from spira.core.domain.dataset import SpiraDataset
 from spira.core.domain.enum import OperationMode
 from spira.core.domain.model import build_spira_model
 from spira.core.domain.noise_generator import NoiseGenerator
@@ -42,6 +43,7 @@ noise_generator = NoiseGenerator(
     randomizer,
 )
 
+# Idk if patients have noise. Reading edresson's article I was under the impression only with control group it is generated noise
 noisy_patients = generate_noisy_audios(
     patients, config.data_augmentation.num_noise_patient, noise_generator
 )
@@ -49,14 +51,26 @@ noisy_controls = generate_noisy_audios(
     controls, config.data_augmentation.num_noise_control, noise_generator
 )
 
-# todo: put noisy audios into one dataset
+# We are assuming all the patients have the disease.
+label_patients = [1 for _ in range(len(noisy_patients))]
+label_controls = [0 for _ in range(len(noisy_controls))]
 
+inputs = noisy_patients + noisy_controls
+labels = label_patients + label_controls
+
+# combined_patients = list(zip(noisy_patients, label_patients))
+# combined_controls = list(zip(noisy_controls, label_controls))
+
+dataset = SpiraDataset({"inputs": inputs, "labels": labels})
 
 ###### train and test data split ######
+
+X_train, X_test, y_train, y_test = dataset.train_and_test_split_dataset()
 
 ###### Hyperparameters configuration #####
 model = build_spira_model(config)
 print(model.conv)
+
 
 # TODO: Como o edresson fez o fit? Ver no código dele
 
