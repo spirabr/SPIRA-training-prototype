@@ -1,37 +1,54 @@
+from abc import abstractmethod
+from enum import Enum
+
 import torchaudio  # type: ignore
 from torchaudio.transforms import MFCC, Resample  # type: ignore
 
-from spira.adapter.config import AudioConfig
-from spira.adapter.valid_path import ValidPath
+from spira.adapter.config import AudioProcessorConfig
 from spira.core.domain.audio import Audio
 
-"""
-Responsible to process the audio input, 
 
-"""
+class AudioProcessorType(Enum):
+    MFCC = "mfcc"
+    SPECTROGRAM = "spectrogram"
+    MELSPECTROGRAM = "melspectrogram"
 
 
 class AudioProcessor(object):
-    def __init__(self, config_audio: AudioConfig):
-        self.feature = config_audio.feature
-        self.num_mels = config_audio.num_mels
-        self.num_mfcc = config_audio.num_mfcc
-        self.log_mels = config_audio.log_mels
-        self.mel_fmin = config_audio.mel_fmin
-        self.mel_fmax = config_audio.mel_fmax
-        self.normalize = config_audio.normalize
-        self.sample_rate = config_audio.sample_rate
-        self.n_fft = config_audio.n_fft
-        self.hop_length = config_audio.hop_length
-        self.win_length = config_audio.win_length
+    def __init__(self):
+        self.transformer = self.create_transformer()
 
-        valid_features = ["spectrogram", "melspectrogram", "mfcc"]
-        if self.feature not in valid_features:
-            raise ValueError("Invalid Feature: " + str(self.feature))
+    @abstractmethod
+    def create_transformer(self):
+        pass
 
-    # Can we remove support to Spectogram and Melspectogram?
-    def wav2feature(self, y):
-        audio_class = MFCC(
+    def transform_into_feature(self, audio: Audio) -> Audio:
+        # feature shape (Batch_size, n_features, timestamp)
+        feature_wav = self.transformer(audio.wav)
+        # transpose for (Batch_size, timestamp, n_features)
+        transposed_feature_wav = feature_wav.transpose(1, 2)
+        # remove batch dim = (timestamp, n_features)
+        reshaped_feature_wav = transposed_feature_wav.reshape(
+            transposed_feature_wav.shape[1:]
+        )
+        return Audio(wav=reshaped_feature_wav, sample_rate=audio.sample_rate)
+
+    def transform_into_features(self, audios: list[Audio]) -> list[Audio]:
+        return [self.transform_into_feature(audio) for audio in audios]
+
+
+class MFCCAudioProcessor(AudioProcessor):
+    def __init__(self, audio_config: AudioProcessorConfig):
+        self.num_mels = audio_config.num_mels
+        self.num_mfcc = audio_config.num_mfcc
+        self.log_mels = audio_config.log_mels
+        self.sample_rate = audio_config.sample_rate
+        self.hop_length = audio_config.hop_length
+        self.win_length = audio_config.win_length
+        self.n_ftt = audio_config.n_fft
+
+    def create_transformer(self):
+        return MFCC(
             sample_rate=self.sample_rate,
             n_mfcc=self.num_mfcc,
             log_mels=self.log_mels,
@@ -43,24 +60,22 @@ class AudioProcessor(object):
             },
         )
 
-        return audio_class(y)
 
-    # Are these methods needed?
-    def get_feature_from_audio_path(self, audio_path):
-        return self.wav2feature(self.load_audio(audio_path))
+class SpectrogramAudioProcessor(AudioProcessor):
+    def create_transformer(self):
+        pass
 
-    def get_feature_from_audio(self, wav):
-        return self.wav2feature(wav)
 
-    def load_audio(self, path: ValidPath) -> Audio:
-        wav, sample_rate = torchaudio.load(str(path), normalize=self.normalize)
+class MelspectrogramAudioProcessor(AudioProcessor):
+    def create_transformer(self):
+        pass
 
-        # resample audio for specific samplerate
-        if sample_rate != self.sample_rate:
-            resample = Resample(sample_rate, self.sample_rate)
-            wav = resample(wav)
 
-        return Audio(wav)
-
-    def load_audios(self, paths: list[ValidPath]) -> list[Audio]:
-        return [self.load_audio(path) for path in paths]
+def create_audio_processor(audio_config: AudioProcessorConfig):
+    match audio_config.feature_type:
+        case AudioProcessorType.MFCC:
+            return MFCCAudioProcessor(audio_config)
+        case AudioProcessorType.SPECTROGRAM:
+            return SpectrogramAudioProcessor()
+        case AudioProcessorType.MELSPECTROGRAM:
+            return MelspectrogramAudioProcessor()

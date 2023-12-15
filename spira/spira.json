@@ -1,11 +1,7 @@
 {
   "seed": 42,
   "dataset": {
-    "split_wav_using_overlapping": true,
-    "window_len": 4,
-    "step": 1,
-    "padding_with_max_length": false,
-    "max_seq_len": 401,
+    "normalize": true,
     "patients_csv": "/app/resources/patients.csv",
     "controls_csv": "/app/resources/controls.csv",
     "noises_csv": "/app/resources/noises.csv"
@@ -22,14 +18,19 @@
     "noise_max_amp": 0.19233719,
     "noise_min_amp": 0.033474047
   },
+  "feature_engineering": {
+    "split_wav_using_overlapping": true,
+    "window_len": 4,
+    "step": 1,
+    "padding_with_max_length": false
+  },
   "test_config": {
     "batch_size": 10,
     "num_workers": 8
   },
   "audio": {
-    "feature": "mfcc",
+    "feature_type": "mfcc",
     "sample_rate": 16000,
-    "normalize": true,
     "num_mels": 40,
     "mel_fmin": 0.0,
     "mel_fmax": null,

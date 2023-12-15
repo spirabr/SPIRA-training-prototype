@@ -24,23 +24,22 @@ class Random(ABC):
         np.random.seed(self.seed)
 
     def get_randint_in_interval(self, first: int, second: int) -> int:
-        return random.randint(first, second)
+        return random.randint(first, second)  # type: ignore
 
     def get_random_float_in_interval(self, first: float, second: float) -> float:
-        return random.uniform(first, second)
+        return random.uniform(first, second)  # type: ignore
 
     def choose_n_elements(self, elements: list[Any], num_elements: int) -> list[Any]:
-        # TODO: deveria ser com replacement (sample faz sem replacement)
-        return random.sample(elements, num_elements)
+        return random.sample(elements, num_elements)  # type: ignore
 
 
 class TrainRandom(Random):
-    def create_random(self, seed) -> Random:
+    def create_random(self, seed) -> Random:  # type: ignore
         return cast(Random, self)
 
 
 class TestRandom(Random):
-    def create_random(self, seed) -> Random:
+    def create_random(self, seed) -> Random:  # type: ignore
         new_seed = self.seed * seed
         return cast(Random, TestRandom(seed=new_seed))
 

@@ -5,10 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22e7e312-e5f5-4224-9817-b4223d09de5a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/training-pipeline.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/training-pipeline.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spira/adapter/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/adapter/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/adapter/random.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/adapter/random.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/adapter/valid_path.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/adapter/valid_path.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/audio.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/audio.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/checkpoint.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/checkpoint.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/dataset_old.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/dataset_old.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/dataset_old_changed.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/dataset_old_changed.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/enum.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/enum.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/noise_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/noise_generator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/scheduler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/domain/train_loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/domain/train_loss.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spira/core/services/audio_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/services/audio_processing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/core/services/data_augmentation.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/core/services/data_augmentation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/spira.json" beforeDir="false" afterPath="$PROJECT_DIR$/spira/spira.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spira/spira_original.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/spira/tasks/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/spira/tasks/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -39,6 +57,9 @@
   <component name="OptimizeOnSaveOptions">
     <option name="myRunOnSave" value="true" />
   </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
 }</component>
@@ -53,26 +74,27 @@
     <option name="showScratchesAndConsoles" value="false" />
     <option name="sortKey" value="BY_TIME_DESCENDING" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;full.screen.before.presentation.mode&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/daniel/training-pipeline/spira/core/domain&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.standard&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.standard&quot;: &quot;&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "full.screen.before.presentation.mode": "false",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "/home/daniel/training-pipeline/spira/core/domain",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.standard": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.standard": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "com.jetbrains.python.black.configuration.BlackFormatterConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/spira/core/domain" />
@@ -103,7 +125,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-67fca87a943a-c986f194a52a-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.11799.259" />
+        <option value="bundled-python-sdk-7a29c1521ef0-c986f194a52a-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.11799.298" />
       </set>
     </attachedChunks>
   </component>
@@ -178,6 +200,12 @@
       <workItem from="1701715167011" duration="677000" />
       <workItem from="1701858052455" duration="1384000" />
       <workItem from="1702219199790" duration="137000" />
+      <workItem from="1702219347362" duration="3001000" />
+      <workItem from="1702256654381" duration="677000" />
+      <workItem from="1702385308398" duration="6661000" />
+      <workItem from="1702463257548" duration="2091000" />
+      <workItem from="1702476884362" duration="2611000" />
+      <workItem from="1702635649944" duration="15690000" />
     </task>
     <servers />
   </component>

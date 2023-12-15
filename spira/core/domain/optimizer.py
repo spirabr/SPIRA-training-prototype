@@ -16,6 +16,10 @@ def choose_optimizer(optimizer_category: OptimizerCategory) -> type[Optimizer]:
     raise ValueError("The optimizer should be Adam, AdamW or RAdam")
 
 
-def build_optimizer(optimizer_category: OptimizerCategory, model_parameters, learning_rate, weight_decay):
+def build_optimizer(
+    optimizer_category: OptimizerCategory, model_parameters, learning_rate, weight_decay
+):
     optimizer_constructor = choose_optimizer(optimizer_category)
-    return optimizer_constructor(model_parameters, lr=learning_rate, weight_decay=weight_decay)
+    return optimizer_constructor(
+        model_parameters, lr=learning_rate, weight_decay=weight_decay
+    )

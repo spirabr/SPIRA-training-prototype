@@ -12,22 +12,13 @@ class Dataset(Dataset):
     Class for load a train and test from dataset generate by import_librispeech.py and others
     """
 
-    def __init__(
-        self,
-        c,
-        ap,
-        audios: list[Audio],
-        classes: pd.Series,
-    ):
-
-
+    def __init__(self, c, ap, audios: list[Audio], classes: pd.Series):
         self.c = c
         self.ap = ap
 
         self.wav_with_class_list = zip(audios, classes)
         self.audios = audios
         self.classes = classes
-
 
         self.max_seq_len = self._calculate_max_seq_length()
 
@@ -36,16 +27,22 @@ class Dataset(Dataset):
             return self.c.dataset["max_seq_len"]
         if not self.c.dataset["padding_with_max_length"] or not self.train:
             return None  # raise Exception("Properties unavailable")
-        min_len, max_len = _find_min_max_in_wav(self.c.audio["hop_length"], self.audios)
+        min_len, max_len = _find_min_max_in_wav(
+            self.c.audio_processor["hop_length"], self.audios
+        )
 
         print(
             "The Max Time dim length is: {} (+- {} seconds)".format(
-                max_len, (max_len * self.c.audio["hop_length"]) / self.ap.sample_rate
+                max_len,
+                (max_len * self.c.audio_processor["hop_length"])
+                / self.ap.preferred_sample_rate,
             )
         )
         print(
             "The Min Time dim length is: {} (+- {} seconds)".format(
-                min_len, (min_len * self.c.audio["hop_length"]) / self.ap.sample_rate
+                min_len,
+                (min_len * self.c.audio_processor["hop_length"])
+                / self.ap.preferred_sample_rate,
             )
         )
         return max_len
@@ -64,7 +61,7 @@ class Dataset(Dataset):
         # TODO: Should I do a function for the next three commands?
 
         # feature shape (Batch_size, n_features, timestamp)
-        feature = self.ap.get_feature_from_audio(wav)
+        feature = self.ap.transform_into_feature(wav)
         # transpose for (Batch_size, timestamp, n_features)
         feature = feature.transpose(1, 2)
         # remove batch dim = (timestamp, n_features)
@@ -89,8 +86,8 @@ class Dataset(Dataset):
         )
 
         if len(features) == 1:
-            feature = self.ap.get_feature_from_audio(
-                wav[:, : self.ap.sample_rate * self.c.dataset["window_len"]]
+            feature = self.ap.transform_into_feature(
+                wav[:, : self.ap.preferred_sample_rate * self.c.dataset["window_len"]]
             ).transpose(1, 2)
             target = torch.FloatTensor([class_name])
             return feature, target
@@ -112,11 +109,13 @@ class Dataset(Dataset):
         start_slice = 0
         features = []
         targets = []
-        step = self.ap.sample_rate * self.c.dataset["step"]
+        step = self.ap.preferred_sample_rate * self.c.dataset["step"]
         for end_slice in range(
-            self.ap.sample_rate * self.c.dataset["window_len"], wav.shape[1], step
+            self.ap.preferred_sample_rate * self.c.dataset["window_len"],
+            wav.shape[1],
+            step,
         ):
-            spec = self.ap.get_feature_from_audio(
+            spec = self.ap.transform_into_feature(
                 wav[:, start_slice:end_slice]
             ).transpose(1, 2)
             features.append(spec)

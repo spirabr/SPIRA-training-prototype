@@ -24,7 +24,6 @@ class ValidPath(BaseModel, PathLike[str]):
     def write(self) -> Path:
         return self.path
 
-
     @model_validator(mode="before")
     @classmethod
     def read(cls, data: Any) -> dict[str, Path]:

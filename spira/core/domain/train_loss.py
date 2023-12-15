@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+
 def define_loss_function(use_mixup: bool):
     match use_mixup:
         case True:

@@ -13,7 +13,9 @@ ARG WHEN_CHANGED_VERSION=0.3.0
 ENTRYPOINT ["poetry", "run", "--"]
 
 # Install poetry version
-RUN pip install pip==${PIP_VERSION} poetry==${POETRY_VERSION} when-changed==${WHEN_CHANGED_VERSION}
+RUN pip install pip==${PIP_VERSION} \
+    poetry==${POETRY_VERSION} \
+    when-changed==${WHEN_CHANGED_VERSION}
 
 # Copy poetry-managed dependencies
 COPY poetry.toml pyproject.toml poetry.lock ./

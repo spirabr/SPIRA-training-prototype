@@ -12,6 +12,6 @@ class OperationMode(Enum):
 
 
 class OptimizerCategory(Enum):
-    ADAM = 'adam'
-    ADAMW = 'adamw'
-    RADAM = 'radam'
+    ADAM = "adam"
+    ADAMW = "adamw"
+    RADAM = "radam"

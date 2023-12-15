@@ -7,7 +7,6 @@ from spira.adapter.config import Config
 from spira.core.domain.mish import Mish
 
 
-# Template method
 class Model(ABC):
     def __init__(self, config: Config):
         self.config = config
@@ -79,7 +78,9 @@ class Model(ABC):
 
 
 class MaxLengthPaddingModel(Model):
-    def _build_fc1(self, config: Config, conv: torch.nn.modules.container.Sequential) -> nn.Linear:
+    def _build_fc1(
+        self, config: Config, conv: torch.nn.modules.container.Sequential
+    ) -> nn.Linear:
         # it's very useful because if you change the convolutional architecture the model calculate its, and you don't need change this :)
         # I prefer activate the network in toy example because is easier than calculate the conv output
         # get zeros input
@@ -98,7 +99,9 @@ class MaxLengthPaddingModel(Model):
 
 
 class NoMaxLengthPaddingModel(Model):
-    def _build_fc1(self, config: Config, conv: torch.nn.modules.container.Sequential) -> nn.Linear:
+    def _build_fc1(
+        self, config: Config, conv: torch.nn.modules.container.Sequential
+    ) -> nn.Linear:
         # dynamic calculation num_feature, it's useful if you use max-pooling or other pooling in feature dim, and this model don't break
         inp = torch.zeros(1, 1, 500, self.num_features)
         # get out shape

@@ -19,6 +19,20 @@ class NoiseGenerator:
         self.noise_max_amp = noise_max_amp
         self.randomizer = randomizer
 
+    def generate_noisy_audios(
+        self, num_samples: int, audios: list[Audio]
+    ) -> list[Audio]:
+        return [
+            self._combine_audio_with_noise(num_samples, audio, idx)
+            for idx, audio in enumerate(audios)
+        ]
+
+    def _combine_audio_with_noise(
+        self, num_samples: int, audio: Audio, extra_seed: int
+    ):
+        noise_generator = self.create_noise_generator(extra_seed)
+        return audio.combine(noise_generator._generate_noise(num_samples, len(audio)))
+
     def create_noise_generator(self, extra_seed):
         return NoiseGenerator(
             self.noises,
@@ -27,8 +41,10 @@ class NoiseGenerator:
             self.randomizer.create_random(extra_seed),
         )
 
-    def generate_noise(self, num_samples: int, limit_length: int) -> Audio:
-        return Audio(wav=self._generate_noise_wav(num_samples, limit_length))
+    def _generate_noise(self, num_samples: int, limit_length: int) -> Audio:
+        noise_wav = self._generate_noise_wav(num_samples, limit_length)
+        # TODO: Verify the correct sample rate for a noise!
+        return Audio(wav=noise_wav, sample_rate=None)
 
     def _generate_noise_wav(self, num_samples: int, limit_length: int) -> torch.Tensor:
         desired_amp = self.randomizer.get_random_float_in_interval(
@@ -43,7 +59,8 @@ class NoiseGenerator:
         chosen_noises = self.randomizer.choose_n_elements(reshaped_noises, num_samples)
 
         return reduce(
-            lambda noise, accumulated_noise: noise.wav + accumulated_noise.wav, chosen_noises
+            lambda noise, accumulated_noise: noise.wav + accumulated_noise.wav,
+            chosen_noises,
         )
 
     def _reshape_audio(
@@ -53,4 +70,4 @@ class NoiseGenerator:
         max_length = max(len(noise), limit_length)
 
         desired_length = self.randomizer.get_randint_in_interval(min_length, max_length)
-        return noise.rescale_audio(desired_amp).resize_audio(desired_length)
+        return noise.rescale(desired_amp).resize(desired_length)

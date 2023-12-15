@@ -4,15 +4,12 @@ from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 from spira.adapter.valid_path import ValidPath
+from spira.core.services.audio_processing import AudioProcessorType
 
 
 @dataclass
 class DatasetConfig:
-    split_wav_using_overlapping: bool
-    window_len: int
-    step: int
-    padding_with_max_length: bool
-    max_seq_len: int
+    normalize: bool
     # eval_csv: ValidPath
     # test_csv: ValidPath
     # inf_csv: ValidPath
@@ -38,16 +35,23 @@ class DataAugmentationConfig:
 
 
 @dataclass
+class FeatureEngineeringConfig:
+    split_wav_using_overlapping: bool
+    window_len: int
+    step: int
+    padding_with_max_length: bool
+
+
+@dataclass
 class TestConfig:
     batch_size: int
     num_workers: int
 
 
 @dataclass
-class AudioConfig:
-    feature: str
+class AudioProcessorConfig:
+    feature_type: AudioProcessorType
     sample_rate: int
-    normalize: bool
     num_mels: int
     mel_fmin: float
     mel_fmax: None
@@ -62,19 +66,11 @@ class AudioConfig:
 class Config(BaseModel):
     seed: int
     dataset: DatasetConfig
+    feature_engineering: FeatureEngineeringConfig
     model: ModelConfig
     data_augmentation: DataAugmentationConfig
     test_config: TestConfig
-    audio: AudioConfig
-
-    def num_features(self):
-        if self.audio.feature == "spectrogram":
-            return self.audio.num_freq
-        elif self.audio.feature == "melspectrogram":
-            return self.audio.num_mels
-        elif self.audio.feature == "mfcc":
-            return self.audio.num_mfcc
-        return None
+    audio_processor: AudioProcessorConfig
 
 
 def read_config(config_path: ValidPath) -> Config:
@@ -86,15 +82,23 @@ def read_config(config_path: ValidPath) -> Config:
 def validate_alternative_options_or_raise(config: Config):
     # xor operator - just one of these should be available
     if (
-        config.dataset.padding_with_max_length
-        ^ config.dataset.split_wav_using_overlapping
+        config.feature_engineering.padding_with_max_length
+        ^ config.feature_engineering.split_wav_using_overlapping
     ):
         RuntimeError(
             "You cannot use the padding_with_max_length option in conjunction with the split_wav_using_overlapping option, disable one of them !!"
         )
 
 
+def validate_feature_type(config: Config):
+    valid_feature_types = ["spectrogram", "melspectrogram", "mfcc"]
+    feature_type = config.audio_processor.feature_type
+    if feature_type not in valid_feature_types:
+        raise ValueError(f"Invalid Feature type: {str(feature_type)}")
+
+
 def load_config(config_path: ValidPath) -> Config:
     config = read_config(config_path)
     validate_alternative_options_or_raise(config)
+    validate_feature_type(config)
     return config

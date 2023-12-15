@@ -20,8 +20,9 @@ class FullCheckpoint:
         self.checkpoint_path = checkpoint_path
 
     def load_state(self, model):
-        checkpoint = torch.load(self.checkpoint_path, map_location='cpu')
-        model.load_state_dict(checkpoint['model'])
+        checkpoint = torch.load(self.checkpoint_path, map_location="cpu")
+        model.load_state_dict(checkpoint["model"])
+
 
 # This part of the Code refers to the exception handling of the
 # FullCheckpoint.load_state method, which originally was part of
