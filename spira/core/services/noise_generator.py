@@ -3,7 +3,7 @@ from functools import reduce
 import torch
 
 from spira.adapter.random import Random
-from spira.core.domain.audio import Audio
+from spira.core.domain.audio import Audio, GeneratedAudio
 
 
 class NoiseGenerator:
@@ -31,7 +31,9 @@ class NoiseGenerator:
         self, num_samples: int, audio: Audio, extra_seed: int
     ):
         noise_generator = self.create_noise_generator(extra_seed)
-        return audio.combine(noise_generator._generate_noise(num_samples, len(audio)))
+        return audio.combine_with_generated_audio(
+            noise_generator._generate_noise(num_samples, len(audio))
+        )
 
     def create_noise_generator(self, extra_seed):
         return NoiseGenerator(
@@ -41,10 +43,9 @@ class NoiseGenerator:
             self.randomizer.create_random(extra_seed),
         )
 
-    def _generate_noise(self, num_samples: int, limit_length: int) -> Audio:
+    def _generate_noise(self, num_samples: int, limit_length: int) -> GeneratedAudio:
         noise_wav = self._generate_noise_wav(num_samples, limit_length)
-        # TODO: Verify the correct sample rate for a noise!
-        return Audio(wav=noise_wav, sample_rate=None)
+        return GeneratedAudio(wav=noise_wav)
 
     def _generate_noise_wav(self, num_samples: int, limit_length: int) -> torch.Tensor:
         desired_amp = self.randomizer.get_random_float_in_interval(

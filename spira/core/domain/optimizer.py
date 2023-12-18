@@ -1,6 +1,13 @@
+from enum import Enum
+
 import torch
 
-from spira.core.domain.enum import OptimizerCategory
+
+class OptimizerCategory(Enum):
+    ADAM = "adam"
+    ADAMW = "adamw"
+    RADAM = "radam"
+
 
 Optimizer = torch.optim.Adam | torch.optim.AdamW | torch.optim.RAdam
 

@@ -40,12 +40,32 @@ class FeatureEngineeringConfig:
     window_len: int
     step: int
     padding_with_max_length: bool
+    hop_length: int
 
 
 @dataclass
 class TestConfig:
     batch_size: int
     num_workers: int
+
+
+@dataclass
+class TrainConfig:
+    early_stop_epochs: int
+    lr_decay: bool
+    warmup_steps: int
+    epochs: int
+    learning_rate: float
+    weight_decay: float
+    optimizer: str
+    loss1_weight: float
+    batch_size: int
+    seed: int
+    num_workers: int
+    logs_path: ValidPath
+    reinit_layers: None
+    summary_interval: int
+    checkpoint_interval: int
 
 
 @dataclass
@@ -70,6 +90,7 @@ class Config(BaseModel):
     model: ModelConfig
     data_augmentation: DataAugmentationConfig
     test_config: TestConfig
+    train_config: TrainConfig
     audio_processor: AudioProcessorConfig
 
 

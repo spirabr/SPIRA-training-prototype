@@ -22,7 +22,7 @@ class AudioProcessor(object):
     def create_transformer(self):
         pass
 
-    def transform_into_feature(self, audio: Audio) -> Audio:
+    def process_audio(self, audio: Audio) -> Audio:
         # feature shape (Batch_size, n_features, timestamp)
         feature_wav = self.transformer(audio.wav)
         # transpose for (Batch_size, timestamp, n_features)
@@ -33,8 +33,8 @@ class AudioProcessor(object):
         )
         return Audio(wav=reshaped_feature_wav, sample_rate=audio.sample_rate)
 
-    def transform_into_features(self, audios: list[Audio]) -> list[Audio]:
-        return [self.transform_into_feature(audio) for audio in audios]
+    def process_audios(self, audios: list[Audio]) -> list[Audio]:
+        return [self.process_audio(audio) for audio in audios]
 
 
 class MFCCAudioProcessor(AudioProcessor):

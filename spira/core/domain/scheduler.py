@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 
 import torch
 
+from spira.adapter.config import Config
+from spira.core.domain.optimizer import Optimizer
+
 
 class Scheduler(ABC):
     @abstractmethod
@@ -35,7 +38,7 @@ class EmptyScheduler(Scheduler):
         return
 
 
-def create_scheduler(c: Config, optimizer: Optmizer) -> Scheduler:
+def create_scheduler(c: Config, optimizer: Optimizer) -> Scheduler:
     if c.train_config["lr_decay"]:
         return NoamLRScheduler(
             optimizer, warmup_steps=c.train_config["warmup_steps"], last_epoch=step - 1
