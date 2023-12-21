@@ -1,10 +1,11 @@
 from typing import cast
 
 import torch
-from torch.utils.data import DataLoader
 
 from spira.core.domain.audio import Audio, get_wavs_from_audios
 from spira.core.domain.dataset import Dataset
+
+DataLoader = torch.utils.data.dataloader.DataLoader
 
 
 def create_train_dataloader(

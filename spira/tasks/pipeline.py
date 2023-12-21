@@ -1,19 +1,18 @@
-from spira.core.services.audio_processing import create_audio_processor
-
 from spira.adapter.config import load_config
 from spira.adapter.random import initialize_random
 from spira.adapter.valid_path import ValidPath, read_valid_paths_from_csv
-from spira.core.domain.audio import load_audios
+from spira.core.domain.audio import Audios
+from spira.core.domain.cnn_builder import create_cnn_builder
 from spira.core.domain.dataloader import (
     create_test_dataloader,
     create_train_dataloader,
 )
 from spira.core.domain.dataset import create_train_and_test_datasets
 from spira.core.domain.enum import OperationMode
-from spira.core.domain.model import build_spira_model
 from spira.core.services.audio_feature_transformer import (
     create_audio_feature_transformer,
 )
+from spira.core.services.audio_processor import create_audio_processor
 from spira.core.services.noise_generator import NoiseGenerator
 
 # dividir em duas partes inicializacao e runtime.
@@ -36,17 +35,18 @@ patients_paths = read_valid_paths_from_csv(config.dataset.patients_csv)
 controls_paths = read_valid_paths_from_csv(config.dataset.controls_csv)
 noises_paths = read_valid_paths_from_csv(config.dataset.noises_csv)
 
-patients = load_audios(patients_paths, config.dataset.normalize)
-controls = load_audios(controls_paths, config.dataset.normalize)
-noises = load_audios(noises_paths, config.dataset.normalize)
+patients_inputs = Audios.load(
+    patients_paths, config.audio_processor.hop_length, config.dataset.normalize
+)
+controls_inputs = Audios.load(
+    controls_paths, config.audio_processor.hop_length, config.dataset.normalize
+)
+noises = Audios.load(
+    noises_paths, config.audio_processor.hop_length, config.dataset.normalize
+)
 
 # Data Processing
 ################################################################################
-
-# We are assuming all the patients have the disease.
-label_patients = [1 for _ in range(len(patients))]
-label_controls = [0 for _ in range(len(controls))]
-labels = label_patients + label_controls
 
 if config.data_augmentation.insert_noise:
     noise_generator = NoiseGenerator(
@@ -56,14 +56,13 @@ if config.data_augmentation.insert_noise:
         randomizer,
     )
 
-    patients = noise_generator.generate_noisy_audios(
-        config.data_augmentation.num_noise_patient, patients
+    patients_inputs = noise_generator.generate_noisy_audios(
+        config.data_augmentation.num_noise_patient, patients_inputs
     )
-    controls = noise_generator.generate_noisy_audios(
-        config.data_augmentation.num_noise_control, controls
+    controls_inputs = noise_generator.generate_noisy_audios(
+        config.data_augmentation.num_noise_control, controls_inputs
     )
 
-inputs = patients + controls
 
 # Feature Engineering
 ################################################################################
@@ -72,10 +71,20 @@ audio_processor = create_audio_processor(config.audio_processor)
 audio_feature_transformer = create_audio_feature_transformer(
     audio_processor, config.feature_engineering
 )
-features = audio_feature_transformer.transform_into_features(inputs)
+
+patients_features = audio_feature_transformer.transform_into_features(patients_inputs)
+controls_features = audio_feature_transformer.transform_into_features(controls_inputs)
+
+# We are assuming all the patients have the disease.
+patients_label = [1 for _ in range(len(patients_features))]
+controls_label = [0 for _ in range(len(controls_features))]
+
 
 # Dataset Generation
 ################################################################################
+
+features = patients_features + controls_features
+labels = patients_label + controls_label
 
 train_dataset, test_dataset = create_train_and_test_datasets(
     features, labels, config.seed
@@ -91,9 +100,20 @@ test_data_loader = create_test_dataloader(
 # Training
 ################################################################################
 
-model = build_spira_model(config)
+cnn_builder = create_cnn_builder(config, train_dataset.features)
 
 # TODO: FIT
+model_trainer = BasicModelTrainer(
+    cnn_builder,
+    optimizer,
+    scheduler,
+    train_loss_calculator,
+    validation_loss_calculator,
+    checkpoint_creator,
+)
+model = model_trainer.train(
+    train_data_loader, test_data_loader, num_epochs, previous_checkpoint
+)
 # trained_model = fit(model, X_train, y_train, X_test)
 
 # TODO: Model Validation

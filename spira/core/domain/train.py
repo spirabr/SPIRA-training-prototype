@@ -1,20 +1,29 @@
+import math
+
+import torch
+
+from spira.core.domain.checkpoint import Checkpoint
+from spira.core.domain.model import Model
 from spira.core.domain.optimizer import build_optimizer
 from spira.core.domain.scheduler import create_scheduler
+from spira.core.domain.train_loss import (
+    define_eval_loss_function,
+    define_train_loss_function,
+)
 from spira.tasks.pipeline import config
 
 
 def train(
     args,
     log_dir,
-    checkpoint_path,
+    model: Model,
+    checkpoint: Checkpoint,
     trainloader,
     testloader,
     tensorboard,
     c,
-    model_name,
     ap,
     cuda=True,
-    model_params=None,
 ):
     loss1_weight = c.train_config["loss1_weight"]
     use_mixup = False if "mixup" not in c.model else c.model["mixup"]
@@ -23,19 +32,6 @@ def train(
         mixup_augmenter = Mixup(mixup_alpha=mixup_alpha)
         print("Enable Mixup with alpha:", mixup_alpha)
 
-    model = return_model(c, model_params)
-
-    #
-    # if c.train_config['optimizer'] == 'adam':
-    #     optimizer = torch.optim.Adam(model.parameters(),
-    #                                  lr=c.train_config['learning_rate'], weight_decay=c.train_config['weight_decay'])
-    # elif c.train_config['optimizer'] == 'adamw':
-    #     optimizer = torch.optim.AdamW(model.parameters(),
-    #                                   lr=c.train_config['learning_rate'], weight_decay=c.train_config['weight_decay'])
-    # elif c.train_config['optimizer'] == 'radam':
-    #     optimizer = RAdam(model.parameters(), lr=c.train_config['learning_rate'], weight_decay=c.train_config['weight_decay'])
-    # else:
-    #     raise Exception("The %s  not is a optimizer supported" % c.train['optimizer'])
     optimizer = build_optimizer(
         config.train_config.optimizer,
         model.parameters(),
@@ -44,21 +40,7 @@ def train(
     )
 
     step = 0
-    if checkpoint_path is not None:
-        print("Continue training from checkpoint: %s" % checkpoint_path)
-        try:
-            checkpoint = torch.load(checkpoint_path, map_location="cpu")
-            model.load_state_dict(checkpoint["model"])
-        except:
-            print(" > Partial model initialization.")
-            model_dict = model.state_dict()
-            model_dict = set_init_dict(model_dict, checkpoint, c)
-            model.load_state_dict(model_dict)
-            del model_dict
-        step = 0
-    else:
-        print("Starting new training run")
-        step = 0
+    checkpoint.load_state(model)
 
     # if c.train_config['lr_decay']:
     #     scheduler = NoamLR(optimizer,
@@ -72,14 +54,11 @@ def train(
     if cuda:
         model = model.cuda()
 
-    # define loss function
-    if use_mixup:
-        criterion = Clip_BCE()
-    else:
-        criterion = nn.BCELoss()
-    eval_criterion = nn.BCELoss(reduction="sum")
+    calculate_train_loss = define_train_loss_function(use_mixup)
 
-    best_loss = float("inf")
+    calculate_eval_loss = define_eval_loss_function()
+
+    best_loss = math.inf
 
     # early stop definitions
     early_epochs = 0
@@ -108,12 +87,12 @@ def train(
             # Calculate loss
             if c.dataset["class_balancer_batch"] and not use_mixup:
                 idxs = target == c.dataset["control_class"]
-                loss_control = criterion(output[idxs], target[idxs])
+                loss_control = calculate_train_loss(output[idxs], target[idxs])
                 idxs = target == c.dataset["patient_class"]
-                loss_patient = criterion(output[idxs], target[idxs])
+                loss_patient = calculate_train_loss(output[idxs], target[idxs])
                 loss = (loss_control + loss_patient) / 2
             else:
-                loss = criterion(output, target)
+                loss = calculate_train_loss(output, target)
 
             optimizer.zero_grad()
             loss.backward()
