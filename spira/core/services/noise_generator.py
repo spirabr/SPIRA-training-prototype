@@ -3,13 +3,13 @@ from functools import reduce
 import torch
 
 from spira.adapter.random import Random
-from spira.core.domain.audio import Audio, GeneratedAudio
+from spira.core.domain.audio import Audio, Audios, GeneratedAudio
 
 
 class NoiseGenerator:
     def __init__(
         self,
-        noises: list[Audio],
+        noises: Audios,
         noise_min_amp: float,
         noise_max_amp: float,
         randomizer: Random,
@@ -19,13 +19,13 @@ class NoiseGenerator:
         self.noise_max_amp = noise_max_amp
         self.randomizer = randomizer
 
-    def generate_noisy_audios(
-        self, num_samples: int, audios: list[Audio]
-    ) -> list[Audio]:
-        return [
-            self._combine_audio_with_noise(num_samples, audio, idx)
-            for idx, audio in enumerate(audios)
-        ]
+    def generate_noisy_audios(self, num_samples: int, audios: Audios) -> Audios:
+        return audios.copy_using(
+            [
+                self._combine_audio_with_noise(num_samples, audio, idx)
+                for idx, audio in enumerate(audios)
+            ]
+        )
 
     def _combine_audio_with_noise(
         self, num_samples: int, audio: Audio, extra_seed: int
