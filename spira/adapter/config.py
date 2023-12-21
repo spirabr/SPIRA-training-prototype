@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 from spira.adapter.valid_path import ValidPath
-from spira.core.services.audio_processing import AudioProcessorType
+from spira.core.services.audio_processor import AudioProcessorType
 
 
 @dataclass
@@ -40,7 +40,6 @@ class FeatureEngineeringConfig:
     window_len: int
     step: int
     padding_with_max_length: bool
-    hop_length: int
 
 
 @dataclass
@@ -69,8 +68,17 @@ class TrainConfig:
 
 
 @dataclass
-class AudioProcessorConfig:
-    feature_type: AudioProcessorType
+class MFCCAudioProcessorConfig:
+    sample_rate: int
+    num_mels: int
+    num_mfcc: int
+    log_mels: bool
+    n_fft: int
+    win_length: int
+
+
+@dataclass
+class SpectrogramAudioProcessorConfig:
     sample_rate: int
     num_mels: int
     mel_fmin: float
@@ -79,8 +87,38 @@ class AudioProcessorConfig:
     log_mels: bool
     n_fft: int
     num_freq: int
-    hop_length: int
     win_length: int
+
+
+@dataclass
+class MelspectrogramAudioProcessorConfig:
+    sample_rate: int
+    num_mels: int
+    mel_fmin: float
+    mel_fmax: None
+    num_mfcc: int
+    log_mels: bool
+    n_fft: int
+    num_freq: int
+    win_length: int
+
+
+@dataclass
+class AudioProcessorConfig:
+    feature_type: AudioProcessorType
+    hop_length: int
+    mfcc: MFCCAudioProcessorConfig
+    spectrogram: SpectrogramAudioProcessorConfig
+    melspectrogram: MelspectrogramAudioProcessorConfig
+
+    def num_features(self):
+        match self.feature_type:
+            case AudioProcessorType.MFCC:
+                return self.mfcc.num_mfcc
+            case AudioProcessorType.SPECTROGRAM:
+                return self.spectrogram.num_freq
+            case AudioProcessorType.MELSPECTROGRAM:
+                return self.melspectrogram.num_mels
 
 
 class Config(BaseModel):

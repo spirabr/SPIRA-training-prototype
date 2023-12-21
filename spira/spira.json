@@ -22,8 +22,7 @@
     "split_wav_using_overlapping": true,
     "window_len": 4,
     "step": 1,
-    "padding_with_max_length": false,
-    "hop_length": 160
+    "padding_with_max_length": false
   },
   "test_config": {
     "batch_size": 10,
@@ -31,16 +30,37 @@
   },
   "audio": {
     "feature_type": "mfcc",
-    "sample_rate": 16000,
-    "num_mels": 40,
-    "mel_fmin": 0.0,
-    "mel_fmax": null,
-    "num_mfcc": 40,
-    "log_mels": false,
-    "n_fft": 1200,
-    "num_freq": 601,
     "hop_length": 160,
-    "win_length": 400
+    "mfcc": {
+      "sample_rate": 16000,
+      "num_mels": 40,
+      "num_mfcc": 40,
+      "log_mels": false,
+      "n_fft": 1200,
+      "win_length": 400
+    },
+    "spectrogram": {
+      "sample_rate": 16000,
+      "num_mels": 40,
+      "mel_fmin": 0.0,
+      "mel_fmax": null,
+      "num_mfcc": 40,
+      "log_mels": false,
+      "n_fft": 1200,
+      "num_freq": 601,
+      "win_length": 400
+    },
+    "melspectrogram": {
+      "sample_rate": 16000,
+      "num_mels": 40,
+      "mel_fmin": 0.0,
+      "mel_fmax": null,
+      "num_mfcc": 40,
+      "log_mels": false,
+      "n_fft": 1200,
+      "num_freq": 601,
+      "win_length": 400
+    }
   },
   "train_config": {
     "early_stop_epochs": 0,
