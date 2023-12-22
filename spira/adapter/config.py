@@ -4,11 +4,33 @@ from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 from spira.adapter.valid_path import ValidPath
-from spira.core.services.audio_processor import AudioProcessorType
+from spira.core.domain.audio_processor import AudioProcessorType
+from spira.core.domain.optimizer import OptimizerCategory
 
 
 @dataclass
-class DatasetConfig:
+class FeatureEngineeringOptionsConfig:
+    use_noise: bool
+    use_overlapping: bool
+    use_padding: bool
+    use_mixture: bool
+
+
+@dataclass
+class TrainingOptionsConfig:
+    use_lr_decay: bool
+    use_clipping: bool
+    use_class_balancing: bool
+
+
+@dataclass
+class OptionsConfig:
+    feature_engineering: FeatureEngineeringOptionsConfig
+    training: TrainingOptionsConfig
+
+
+@dataclass
+class DatasetParametersConfig:
     normalize: bool
     # eval_csv: ValidPath
     # test_csv: ValidPath
@@ -19,15 +41,14 @@ class DatasetConfig:
 
 
 @dataclass
-class ModelConfig:
+class ModelParametersConfig:
     name: str
     fc1_dim: int
     fc2_dim: int
 
 
 @dataclass
-class DataAugmentationConfig:
-    insert_noise: bool
+class NoisyAudioFeatureTransformerConfig:
     num_noise_control: int
     num_noise_patient: int
     noise_max_amp: float
@@ -35,28 +56,62 @@ class DataAugmentationConfig:
 
 
 @dataclass
-class FeatureEngineeringConfig:
-    split_wav_using_overlapping: bool
-    window_len: int
-    step: int
-    padding_with_max_length: bool
+class OverlappedAudioFeatureTransformerConfig:
+    window_length: int
+    step_size: int
 
 
 @dataclass
-class TestConfig:
+class MixedAudioFeatureTransformerConfig:
+    alpha: float
+    beta: float
+
+
+@dataclass
+class FeatureEngineeringParametersConfig:
+    noisy_audio: NoisyAudioFeatureTransformerConfig
+    overlapped_audio: OverlappedAudioFeatureTransformerConfig
+    mixed_audio: MixedAudioFeatureTransformerConfig
+
+
+@dataclass
+class TestParametersConfig:
     batch_size: int
     num_workers: int
 
 
 @dataclass
-class TrainConfig:
-    early_stop_epochs: int
-    lr_decay: bool
-    warmup_steps: int
-    epochs: int
+class TrainOptimizerConfig:
+    category: OptimizerCategory
     learning_rate: float
     weight_decay: float
-    optimizer: str
+
+
+@dataclass
+class TrainSchedulerConfig:
+    use_lr_decay: bool
+    warmup_steps: int
+
+
+@dataclass
+class TrainLossCalculatorConfig:
+    use_class_balancing: bool
+
+
+@dataclass
+class TrainCheckpointConfig:
+    dir: ValidPath
+    interval: int
+
+
+@dataclass
+class TrainingParametersConfig:
+    optimizer: TrainOptimizerConfig
+    scheduler: TrainSchedulerConfig
+    loss_calculator: TrainLossCalculatorConfig
+    checkpoint: TrainCheckpointConfig
+    early_stop_epochs: int
+    epochs: int
     loss1_weight: float
     batch_size: int
     seed: int
@@ -64,7 +119,6 @@ class TrainConfig:
     logs_path: ValidPath
     reinit_layers: None
     summary_interval: int
-    checkpoint_interval: int
 
 
 @dataclass
@@ -104,7 +158,7 @@ class MelspectrogramAudioProcessorConfig:
 
 
 @dataclass
-class AudioProcessorConfig:
+class AudioProcessorParametersConfig:
     feature_type: AudioProcessorType
     hop_length: int
     mfcc: MFCCAudioProcessorConfig
@@ -121,15 +175,19 @@ class AudioProcessorConfig:
                 return self.melspectrogram.num_mels
 
 
+@dataclass
+class ParametersConfig:
+    audio: AudioProcessorParametersConfig
+    dataset: DatasetParametersConfig
+    feature_engineering: FeatureEngineeringParametersConfig
+    model: ModelParametersConfig
+    training: TrainingParametersConfig
+
+
 class Config(BaseModel):
     seed: int
-    dataset: DatasetConfig
-    feature_engineering: FeatureEngineeringConfig
-    model: ModelConfig
-    data_augmentation: DataAugmentationConfig
-    test_config: TestConfig
-    train_config: TrainConfig
-    audio_processor: AudioProcessorConfig
+    options: OptionsConfig
+    parameters: ParametersConfig
 
 
 def read_config(config_path: ValidPath) -> Config:
@@ -138,26 +196,30 @@ def read_config(config_path: ValidPath) -> Config:
     return Config(**config_json)
 
 
-def validate_alternative_options_or_raise(config: Config):
+def validate_consistent_options(options: OptionsConfig):
+    if options.feature_engineering.use_mixture == options.training.use_clipping:
+        RuntimeError("You should use a clipped loss when using mixed data")
+
+
+def validate_feature_engineering_options_or_raise(
+    options: FeatureEngineeringOptionsConfig,
+):
     # xor operator - just one of these should be available
-    if (
-        config.feature_engineering.padding_with_max_length
-        ^ config.feature_engineering.split_wav_using_overlapping
-    ):
+    if options.use_padding ^ options.use_overlapping:
         RuntimeError(
-            "You cannot use the padding_with_max_length option in conjunction with the split_wav_using_overlapping option, disable one of them !!"
+            "You cannot use paddings and overlapping options for feature engineering"
         )
 
 
-def validate_feature_type(config: Config):
+def validate_feature_type(parameters: ParametersConfig):
     valid_feature_types = ["spectrogram", "melspectrogram", "mfcc"]
-    feature_type = config.audio_processor.feature_type
+    feature_type = parameters.audio.feature_type
     if feature_type not in valid_feature_types:
         raise ValueError(f"Invalid Feature type: {str(feature_type)}")
 
 
 def load_config(config_path: ValidPath) -> Config:
     config = read_config(config_path)
-    validate_alternative_options_or_raise(config)
-    validate_feature_type(config)
+    validate_feature_engineering_options_or_raise(config.options.feature_engineering)
+    validate_feature_type(config.parameters)
     return config

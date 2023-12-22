@@ -1,27 +1,23 @@
-import math
-from abc import ABC, abstractmethod
-from typing import Optional
+from typing import NewType
 
 import torch
 import torch.nn as nn
 
-from spira.core.domain.audio import Audios, get_wavs_from_audios
-from spira.core.domain.checkpoint import (
-    Checkpoint,
-    CheckpointCreator,
-    CheckpointManager,
-    Step,
-)
+from spira.adapter.config import TrainingOptionsConfig
 from spira.core.domain.cnn_builder import CNNBuilder
-from spira.core.domain.dataloader import DataLoader
-from spira.core.domain.loss import Label, MultipleLossCalculator, Prediction, Validation
 from spira.core.domain.mish import Mish
-from spira.core.domain.optimizer import Optimizer
-from spira.core.domain.scheduler import Scheduler
+
+FeaturesBatch = NewType("FeaturesBatch", torch.Tensor)
+LabelsBatch = NewType("LabelsBatch", torch.Tensor)
+PredictionsBatch = NewType("PredictionsBatch", torch.Tensor)
+
+Parameter = NewType("Parameter", torch.nn.Parameter)
 
 
-class PyTorchModel(nn.Module):
+class TorchModel(nn.Module):
     def __init__(self, cnn_builder: CNNBuilder):
+        super().__init__()
+
         self.conv = self._build_cnn()
         self.mish = Mish()
 
@@ -30,7 +26,7 @@ class PyTorchModel(nn.Module):
         self.dropout = cnn_builder.define_dropout()
         self.reshape_x = cnn_builder.reshape_x
 
-    def forward(self, x: Audios):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: [B, T, num_feature]
         x = x.unsqueeze(1)
         # x: [B, 1, T, num_feature]
@@ -44,11 +40,11 @@ class PyTorchModel(nn.Module):
         x = self.mish(x)
         x = self.dropout(x)
         x = self.fc2(x)
-        x = torch.sigmoid(x)
-        return x
+        y = torch.sigmoid(x)
+        return y
 
-    def _build_cnn(self):
-        convs = [
+    def _build_cnn(self) -> nn.Sequential:
+        layers = [
             # cnn1
             nn.Conv2d(1, 32, kernel_size=(7, 1), dilation=(2, 1)),
             nn.GroupNorm(16, 32),
@@ -56,9 +52,7 @@ class PyTorchModel(nn.Module):
             nn.MaxPool2d(kernel_size=(2, 1)),
             nn.Dropout(p=0.7),
             # cnn2
-            nn.Conv2d(
-                32, 16, kernel_size=(5, 1), dilation=(2, 1)
-            ),  # Camada convolucional
+            nn.Conv2d(32, 16, kernel_size=(5, 1), dilation=(2, 1)),
             nn.GroupNorm(8, 16),  # Normalizacao
             self.mish,  # suavizacao da camada anterior
             nn.MaxPool2d(kernel_size=(2, 1)),  # pooling
@@ -75,121 +69,34 @@ class PyTorchModel(nn.Module):
             self.mish,
             nn.Dropout(p=0.7),
         ]
-        return nn.Sequential(*convs)
+        return nn.Sequential(*layers)
 
 
-class Model(ABC):
-    @abstractmethod
-    def predict(self, features: Audios):
-        pass
+class Model:
+    def __init__(self, model: TorchModel):
+        self.model = model
 
+    def predict(self, features: FeaturesBatch) -> PredictionsBatch:
+        return self.model(torch.Tensor(features))
 
-class ModelTrainer(ABC):
-    def __init__(
-        self,
-        cnn_builder: CNNBuilder,
-        optimizer: Optimizer,
-        scheduler: Scheduler,
-        train_loss_calculator: MultipleLossCalculator,
-        validation_loss_calculator: MultipleLossCalculator,
-        checkpoint_creator: CheckpointCreator,
-    ):
-        self.model = PyTorchModel(cnn_builder)
-        self.optimizer = optimizer
-        self.scheduler = scheduler
-        self.train_loss_calculator = train_loss_calculator
-        self.validation_loss_calculator = validation_loss_calculator
-        self.checkpoint_creator = checkpoint_creator
+    def dump_state(self) -> dict:
+        return self.model.state_dict()
 
-    @abstractmethod
-    def train(
-        self,
-        train_loader: DataLoader,
-        validation_loader: DataLoader,
-        num_epochs: int,
-        checkpoint: Checkpoint,
-    ) -> Model:
-        pass
+    def load_state(self, state_dict: dict):
+        self.model.load_state_dict(state_dict)
+
+    def get_parameters(self) -> list[Parameter]:
+        return [Parameter(parameter) for parameter in self.model.parameters()]
 
 
 class BasicModel(Model):
-    def __init__(self, model: PyTorchModel):
-        self.model = model
-
-    def predict(self, features: Audios):
-        return self.model(get_wavs_from_audios(features))
+    def __init__(self, model: TorchModel):
+        super().__init__(model)
 
 
-class BasicModelTrainer(ModelTrainer):
-    def __init__(
-        self,
-        cnn_builder: CNNBuilder,
-        optimizer: Optimizer,
-        scheduler: Scheduler,
-        train_loss_calculator: MultipleLossCalculator,
-        validation_loss_calculator: MultipleLossCalculator,
-        checkpoint_creator: CheckpointCreator,
-    ):
-        super().__init__(
-            cnn_builder,
-            optimizer,
-            scheduler,
-            train_loss_calculator,
-            validation_loss_calculator,
-            checkpoint_creator,
-        )
-
-    def train(
-        self,
-        train_loader: DataLoader,
-        validation_loader: DataLoader,
-        num_epochs: int,
-        previous_checkpoint: Optional[Checkpoint],
-    ) -> BasicModel:
-        if num_epochs <= 0:
-            raise ValueError("Number of epochs should be greater than zero")
-
-        checkpoint_manager = CheckpointManager(
-            self.checkpoint_creator,
-            self.model,
-            self.optimizer,
-            previous_checkpoint,
-        )
-
-        early_epochs = 0
-
-        for epoch in range(num_epochs):
-            for features_batch, label_batch in train_loader:
-                prediction_batch = self.model(features_batch)
-                train_loss = self.train_loss_calculator.calculate(
-                    self.to_validations(prediction_batch, label_batch)
-                )
-
-                self.optimizer.zero_grad()
-                self.train_loss_calculator.recalculate_weights()
-                self.optimizer.step()
-                self.scheduler.step()
-
-                if self._has_loss_exploded(train_loss):
-                    break
-
-            for idx, (features_batch, label_batch) in enumerate(validation_loader):
-                step = Step(epoch * len(validation_loader) + idx)
-                prediction_batch = self.model(features_batch)
-                validation_loss = self.validation_loss_calculator.calculate(self.to_validations(prediction_batch, label_batch))
-
-                checkpoint_manager.update_and_save_checkpoints(validation_loss, step)
-
-        return BasicModel(self.model)
-
-    @staticmethod
-    def to_validations(prediction_batch: list[Prediction], label_batch: list[Label]):
-        return [Validation(prediction, label) for prediction, label in zip(prediction_batch, label_batch)]
-
-    @staticmethod
-    def _has_loss_exploded(current_loss: float) -> bool:
-        return current_loss > 1e8 or math.isnan(current_loss)
+def _create_torch_model(cnn_builder: CNNBuilder) -> TorchModel:
+    return TorchModel(cnn_builder)
 
 
-class MixupModel(Model):
-    pass
+def create_model(_options: TrainingOptionsConfig, cnn_builder: CNNBuilder) -> Model:
+    return BasicModel(_create_torch_model(cnn_builder))

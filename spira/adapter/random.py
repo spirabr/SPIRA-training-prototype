@@ -12,6 +12,7 @@ from spira.core.domain.enum import OperationMode
 class Random(ABC):
     def __init__(self, seed: int):
         self.seed = seed
+        self.random_state = np.random.RandomState(self.seed)
 
     @abstractmethod
     def create_random(self, seed) -> Self:
@@ -23,14 +24,20 @@ class Random(ABC):
         torch.cuda.manual_seed(self.seed)
         np.random.seed(self.seed)
 
-    def get_randint_in_interval(self, first: int, second: int) -> int:
+    @staticmethod
+    def get_randint_in_interval(first: int, second: int) -> int:
         return random.randint(first, second)  # type: ignore
 
-    def get_random_float_in_interval(self, first: float, second: float) -> float:
+    @staticmethod
+    def get_random_float_in_interval(first: float, second: float) -> float:
         return random.uniform(first, second)  # type: ignore
 
-    def choose_n_elements(self, elements: list[Any], num_elements: int) -> list[Any]:
+    @staticmethod
+    def choose_n_elements(elements: list[Any], num_elements: int) -> list[Any]:
         return random.sample(elements, num_elements)  # type: ignore
+
+    def get_probability(self, alpha: float, beta: float) -> float:
+        return self.random_state.beta(alpha, beta)
 
 
 class TrainRandom(Random):

@@ -3,7 +3,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Any
 
-import pandas as pd
+import pandas as pd  # type: ignore
 from pydantic import BaseModel, model_serializer, model_validator
 
 
@@ -20,18 +20,18 @@ class ValidPath(BaseModel, PathLike[str]):
     def from_str(cls, data: str):
         return ValidPath.model_construct(path=create_valid_path(data))
 
-    @model_serializer()
-    def write(self) -> Path:
-        return self.path
-
-    @model_validator(mode="before")
     @classmethod
+    @model_validator(mode="before")
     def read(cls, data: Any) -> dict[str, Path]:
         if isinstance(data, str):
             return {"path": create_valid_path(data)}
         if isinstance(data, dict):
             return data
         raise RuntimeError("Path should be a string.")
+
+    @model_serializer()
+    def write(self) -> Path:
+        return self.path
 
 
 def check_file_exists(path: Path) -> bool:

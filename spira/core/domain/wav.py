@@ -1,26 +1,28 @@
+from typing import NewType, cast
+
 import torch
-from torchaudio.transforms import Resample
+from torchaudio.transforms import Resample  # type: ignore
+
+Wav = NewType("Wav", torch.Tensor)
 
 
-def create_empty_wav() -> torch.Tensor:
-    return torch.Tensor()
+def create_empty_wav() -> Wav:
+    return Wav(torch.empty())
 
 
-def resize_wav(wav: torch.Tensor, length: int) -> torch.Tensor:
-    return wav[0:length]
+def resize_wav(wav: Wav, length: int) -> Wav:
+    return Wav(wav[0:length])
 
 
-def rescale_wav(wav: torch.Tensor, amplitude: float) -> torch.Tensor:
-    return torch.mul(wav, amplitude / float(wav.max()))
+def rescale_wav(wav: Wav, amplitude: float) -> Wav:
+    return Wav(torch.mul(wav, amplitude / float(wav.max())))
 
 
-def combine_wavs(wav_1: torch.Tensor, wav_2: torch.Tensor) -> torch.Tensor:
-    return wav_1 + wav_2
+def combine_wavs(wav_1: Wav, wav_2: Wav) -> Wav:
+    return Wav(wav_1 + wav_2)
 
 
-def resample_wav(
-    wav: torch.Tensor, actual_sample_rate: int, desired_sample_rate: int
-) -> torch.Tensor:
+def resample_wav(wav: Wav, actual_sample_rate: int, desired_sample_rate: int) -> Wav:
     if desired_sample_rate == actual_sample_rate:
         return wav
 
@@ -28,9 +30,9 @@ def resample_wav(
     return resample(wav)
 
 
-def slice_wav(wav: torch.Tensor, start_index: int, end_index: int) -> torch.Tensor:
-    return wav[start_index:end_index]
+def slice_wav(wav: Wav, start_index: int, end_index: int) -> Wav:
+    return Wav(wav[start_index:end_index])
 
 
-def concatenate_wavs(wavs: list[torch.Tensor]) -> torch.Tensor:
-    return torch.cat(wavs, dim=0)
+def concatenate_wavs(wavs: list[Wav]) -> Wav:
+    return Wav(torch.cat(cast(list[torch.Tensor], wavs), dim=0))

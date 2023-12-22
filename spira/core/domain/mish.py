@@ -1,10 +1,9 @@
 import torch
-import torch.nn.functional as F
-import torch.nn as nn
+from torch.nn.functional import softplus
 
 
 # adapted from https://github.com/digantamisra98/Mish/blob/master/Mish/Torch/mish.py
-class Mish(nn.Module):
+class Mish(torch.nn.Module):
     """
     Applies the mish function element-wise:
     mish(x) = x * tanh(softplus(x)) = x * tanh(ln(1 + exp(x)))
@@ -24,8 +23,9 @@ class Mish(nn.Module):
         """
         super().__init__()
 
-    def forward(self, inp):
+    @staticmethod
+    def forward(inp):
         """
         Forward pass of the function.
         """
-        return inp * torch.tanh(F.softplus(inp))
+        return inp * torch.tanh(softplus(inp))

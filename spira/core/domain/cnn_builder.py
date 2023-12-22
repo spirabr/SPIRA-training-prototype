@@ -3,12 +3,16 @@ from abc import ABC, abstractmethod
 import torch
 from torch import nn as nn
 
-from spira.adapter.config import Config, ModelConfig
+from spira.adapter.config import (
+    FeatureEngineeringOptionsConfig,
+    ModelParametersConfig,
+    ParametersConfig,
+)
 from spira.core.domain.audio import Audios
 
 
 class CNNBuilder(ABC):
-    def __init__(self, config: ModelConfig, num_features: int):
+    def __init__(self, config: ModelParametersConfig, num_features: int):
         self.config = config
         self.num_features = num_features
 
@@ -19,7 +23,8 @@ class CNNBuilder(ABC):
     def build_fc2(self) -> nn.Linear:
         return nn.Linear(self.config.fc1_dim, self.config.fc2_dim)
 
-    def define_dropout(self) -> nn.Dropout:
+    @staticmethod
+    def define_dropout() -> nn.Dropout:
         return nn.Dropout(p=0.7)
 
     @abstractmethod
@@ -28,7 +33,9 @@ class CNNBuilder(ABC):
 
 
 class PaddedFeaturesCNNBuilder(CNNBuilder):
-    def __init__(self, config: ModelConfig, num_features: int, max_audio_length: int):
+    def __init__(
+        self, config: ModelParametersConfig, num_features: int, max_audio_length: int
+    ):
         super().__init__(config, num_features)
         self.max_audio_length = max_audio_length
 
@@ -51,7 +58,7 @@ class PaddedFeaturesCNNBuilder(CNNBuilder):
 
 
 class OverlappedFeaturesCNNBuilder(CNNBuilder):
-    def __init__(self, config: ModelConfig, num_features: int):
+    def __init__(self, config: ModelParametersConfig, num_features: int):
         super().__init__(config, num_features)
 
     def build_fc1(self, conv: torch.nn.modules.container.Sequential) -> nn.Linear:
@@ -65,15 +72,22 @@ class OverlappedFeaturesCNNBuilder(CNNBuilder):
         return x.view(x.size(0), x.size(1), -1)
 
 
-def create_cnn_builder(config: Config, audios: Audios) -> CNNBuilder:
-    if config.feature_engineering.split_wav_using_overlapping:
+def create_cnn_builder(
+    options: FeatureEngineeringOptionsConfig,
+    parameters: ParametersConfig,
+    audios: Audios,
+) -> CNNBuilder:
+    if options.use_overlapping:
         return OverlappedFeaturesCNNBuilder(
-            config.model, config.audio_processor.num_features()
+            parameters.model,
+            parameters.audio.num_features(),
         )
-    if config.feature_engineering.padding_with_max_length:
+
+    if options.use_padding:
         return PaddedFeaturesCNNBuilder(
-            config.model,
-            config.audio_processor.num_features(),
+            parameters.model,
+            parameters.audio.num_features(),
             audios.get_max_audio_length(),
         )
+
     raise ValueError("Unknown feature engineering type")

@@ -1,11 +1,10 @@
 from abc import abstractmethod
 from enum import Enum
 
-import torchaudio  # type: ignore
-from torchaudio.transforms import MFCC, Resample  # type: ignore
+from torchaudio.transforms import MFCC  # type: ignore
 
 from spira.adapter.config import (
-    AudioProcessorConfig,
+    AudioProcessorParametersConfig,
     MFCCAudioProcessorConfig,
     MelspectrogramAudioProcessorConfig,
     SpectrogramAudioProcessorConfig,
@@ -20,7 +19,8 @@ class AudioProcessorType(Enum):
 
 
 class AudioProcessor(object):
-    def __init__(self):
+    def __init__(self, hop_length: int):
+        self.hop_length = hop_length
         self.transformer = self.create_transformer()
 
     @abstractmethod
@@ -45,8 +45,8 @@ class AudioProcessor(object):
 
 
 class MFCCAudioProcessor(AudioProcessor):
-    def __init__(self, config: MFCCAudioProcessorConfig):
-        super().__init__()
+    def __init__(self, config: MFCCAudioProcessorConfig, hop_length: int):
+        super().__init__(hop_length)
         self.config = config
 
     def create_transformer(self):
@@ -57,15 +57,15 @@ class MFCCAudioProcessor(AudioProcessor):
             melkwargs={
                 "n_fft": self.config.n_fft,
                 "win_length": self.config.win_length,
-                "hop_length": self.config.hop_length,
+                "hop_length": self.hop_length,
                 "n_mels": self.config.num_mels,
             },
         )
 
 
 class SpectrogramAudioProcessor(AudioProcessor):
-    def __init__(self, config: SpectrogramAudioProcessorConfig):
-        super().__init__()
+    def __init__(self, config: SpectrogramAudioProcessorConfig, hop_length: int):
+        super().__init__(hop_length)
         self.config = config
 
     def create_transformer(self):
@@ -73,19 +73,28 @@ class SpectrogramAudioProcessor(AudioProcessor):
 
 
 class MelspectrogramAudioProcessor(AudioProcessor):
-    def __init__(self, config: MelspectrogramAudioProcessorConfig):
-        super().__init__()
+    def __init__(self, config: MelspectrogramAudioProcessorConfig, hop_length: int):
+        super().__init__(hop_length)
         self.config = config
 
     def create_transformer(self):
         pass
 
 
-def create_audio_processor(config: AudioProcessorConfig):
-    match config.feature_type:
+def create_audio_processor(parameters: AudioProcessorParametersConfig):
+    match parameters.feature_type:
         case AudioProcessorType.MFCC:
-            return MFCCAudioProcessor(config.mfcc)
+            return MFCCAudioProcessor(
+                parameters.mfcc,
+                parameters.hop_length,
+            )
         case AudioProcessorType.SPECTROGRAM:
-            return SpectrogramAudioProcessor(config.spectrogram)
+            return SpectrogramAudioProcessor(
+                parameters.spectrogram,
+                parameters.hop_length,
+            )
         case AudioProcessorType.MELSPECTROGRAM:
-            return MelspectrogramAudioProcessor(config.melspectrogram)
+            return MelspectrogramAudioProcessor(
+                parameters.melspectrogram,
+                parameters.hop_length,
+            )

@@ -1,5 +1,5 @@
 import torch
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split  # type: ignore
 
 from spira.core.domain.audio import Audios
 
@@ -15,6 +15,7 @@ class Dataset(torch.utils.data.Dataset):
         return self.features[index], self.labels[index]
 
 
+# noinspection PyPep8Naming
 def create_train_and_test_datasets(
     features: Audios, labels: list[int], random_state: int
 ) -> tuple[Dataset, Dataset]:

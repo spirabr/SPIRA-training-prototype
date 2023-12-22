@@ -1,15 +1,17 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Self, cast
+from typing import NewType, cast
 
+import torch
 import torch.nn as nn
+from torch.nn.functional import binary_cross_entropy
+from typing_extensions import Self
 
-# Loss = nn.modules.loss._Loss
+from spira.adapter.config import TrainingOptionsConfig
 
-
-Prediction = int
-Label = int
-Loss = float
+Prediction = NewType("Prediction", torch.Tensor)
+Label = NewType("Label", torch.Tensor)
+Loss = torch.FloatTensor
 
 
 @dataclass
@@ -34,14 +36,11 @@ class SingleLossCalculator(ABC):
 
 class BCELossCalculator(SingleLossCalculator):
     def __init__(self, reduction: str):
-        super().__init__()
         self.reduction = reduction
         self.bce_loss = nn.BCELoss(reduction=reduction)
 
-    def calculate(self, validation: Validation) -> float:
-        # .item() extracts a float from a single dimension tensor
-        # https://discuss.pytorch.org/t/what-is-the-difference-between-loss-and-loss-item/126083
-        return Loss(self.bce_loss(validation.prediction, validation.label).item())
+    def calculate(self, validation: Validation) -> Loss:
+        return Loss(self.bce_loss(validation.prediction, validation.label))
 
     def recalculate_weights(self):
         self.bce_loss.backward()
@@ -51,18 +50,14 @@ class BCELossCalculator(SingleLossCalculator):
 
 
 class ClipBCELossCalculator(SingleLossCalculator):
-    # TODO: Import Clip_BCE
-    def __init__(self):
-        super().__init__()
-
     def calculate(self, validation: Validation) -> Loss:
-        return Loss(0.0)
+        return Loss(binary_cross_entropy(validation.prediction, validation.label))
 
     def recalculate_weights(self):
-        pass
+        return
 
     def clone(self) -> Self:
-        pass
+        return cast(Self, ClipBCELossCalculator())
 
 
 class MultipleLossCalculator(ABC):
@@ -88,7 +83,7 @@ class AverageMultipleLossCalculator(MultipleLossCalculator):
             self.single_loss_calculator.calculate(validation)
             for validation in validations
         ]
-        return sum(losses) / len(losses)
+        return Loss(sum(losses) / len(losses))
 
     def recalculate_weights(self):
         self.single_loss_calculator.recalculate_weights()
@@ -104,7 +99,9 @@ class BalancedAverageMultipleLossCalculator(MultipleLossCalculator):
         if len(validations) == 0:
             return Loss(0.0)
 
-        self.loss_calculators_by_label = self._create_loss_calculators_by_label()
+        self.loss_calculators_by_label = self._create_loss_calculators_by_label(
+            validations
+        )
         aggregated_predictions_by_label = self._aggregate_predictions_by_label(
             validations
         )
@@ -168,7 +165,7 @@ class BalancedAverageMultipleLossCalculator(MultipleLossCalculator):
 
     @staticmethod
     def _calculate_average_loss_per_label(
-        aggregated_losses_by_label: dict[Label, list[Loss]]
+        aggregated_losses_by_label: dict[Label, list[Loss]],
     ) -> dict[Label, Loss]:
         average_losses_by_label: dict[Label, Loss] = {}
 
@@ -176,47 +173,53 @@ class BalancedAverageMultipleLossCalculator(MultipleLossCalculator):
             assert (
                 len(aggregated_losses_by_label[label]) > 0
             ), "Labels should appear only if there's an element with that label"
-            average_losses_by_label[label] = sum(
-                aggregated_losses_by_label[label]
-            ) / len(aggregated_losses_by_label[label])
+
+            average_losses_by_label[label] = Loss(
+                sum(aggregated_losses_by_label[label])
+                / len(aggregated_losses_by_label[label])
+            )
 
         return average_losses_by_label
 
     @staticmethod
     def _calculate_average_loss(average_loss_by_label: dict[Label, Loss]) -> Loss:
         assert len(average_loss_by_label) > 0, "We should have at least one label!"
-        return sum(average_loss_by_label) / len(average_loss_by_label)
+        return Loss(sum(average_loss_by_label) / len(average_loss_by_label))
 
 
-def _define_single_train_loss_calculator(use_mixup: bool) -> SingleLossCalculator:
-    match use_mixup:
+def _create_single_train_loss_calculator(
+    options: TrainingOptionsConfig,
+) -> SingleLossCalculator:
+    match options.use_clipping:
         case True:
             return ClipBCELossCalculator()
         case False:
             return BCELossCalculator(reduction="none")
 
 
-def _define_single_eval_loss_calculator() -> SingleLossCalculator:
+def _create_single_test_loss_calculator() -> SingleLossCalculator:
     return BCELossCalculator(reduction="sum")
 
 
-def _define_multiple_loss_calculator(
-    use_balancing: bool, single_loss_calculator: SingleLossCalculator
+def _create_multiple_loss_calculator(
+    options: TrainingOptionsConfig, single_loss_calculator: SingleLossCalculator
 ):
-    match use_balancing:
+    match options.use_class_balancing:
         case True:
             return BalancedAverageMultipleLossCalculator(single_loss_calculator)
         case False:
             return AverageMultipleLossCalculator(single_loss_calculator)
 
 
-def define_train_loss_function(
-    use_mixup: bool, use_balancing: bool
+def create_train_loss_calculator(
+    options: TrainingOptionsConfig,
 ) -> MultipleLossCalculator:
-    single_loss_calculator = _define_single_train_loss_calculator(use_mixup)
-    return _define_multiple_loss_calculator(use_balancing, single_loss_calculator)
+    single_loss_calculator = _create_single_train_loss_calculator(options)
+    return _create_multiple_loss_calculator(options, single_loss_calculator)
 
 
-def define_eval_loss_function(use_balancing: bool) -> MultipleLossCalculator:
-    single_loss_calculator = _define_single_eval_loss_calculator()
-    return _define_multiple_loss_calculator(use_balancing, single_loss_calculator)
+def create_test_loss_calculator(
+    options: TrainingOptionsConfig,
+) -> MultipleLossCalculator:
+    single_loss_calculator = _create_single_test_loss_calculator()
+    return _create_multiple_loss_calculator(options, single_loss_calculator)

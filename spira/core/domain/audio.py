@@ -1,13 +1,12 @@
 import math
 from typing import Callable, Iterable, Iterator, Optional, cast
 
-import torch
 import torchaudio  # type: ignore
-from torchaudio.transforms import MFCC, Resample  # type: ignore
 from typing_extensions import Self
 
 from spira.adapter.valid_path import ValidPath
 from spira.core.domain.wav import (
+    Wav,
     combine_wavs,
     concatenate_wavs,
     create_empty_wav,
@@ -19,7 +18,7 @@ from spira.core.domain.wav import (
 
 
 class GeneratedAudio:
-    def __init__(self, wav: torch.Tensor):
+    def __init__(self, wav: Wav):
         self.wav = wav
 
 
@@ -33,12 +32,15 @@ class GeneratedAudios:
     def __iter__(self):
         return iter(self.audios)
 
-    def copy_using(self, audios: list["Audio"]):
+    @staticmethod
+    def copy_using(audios: list["Audio"]):
         return GeneratedAudios(audios)
 
 
 class Audio:
-    def __init__(self, wav: torch.Tensor, sample_rate: int):
+    EMPTY_SAMPLE_RATE = 0
+
+    def __init__(self, wav: Wav, sample_rate: int):
         self.wav = wav
         self.sample_rate = sample_rate
 
@@ -49,11 +51,20 @@ class Audio:
 
     @classmethod
     def create_empty(cls):
-        EMPTY_SAMPLE_RATE = 0
-        return cast(Self, Audio(wav=create_empty_wav(), sample_rate=EMPTY_SAMPLE_RATE))
+        return cast(
+            Self, Audio(wav=create_empty_wav(), sample_rate=Audio.EMPTY_SAMPLE_RATE)
+        )
 
     def __len__(self):
         return math.ceil(len(self.wav) / self.sample_rate)
+
+    def __add__(self, other: Self | float) -> Self:
+        term = other.wav if isinstance(other, Audio) else other
+        return cast(Self, Audio(Wav(self.wav + term), self.sample_rate))
+
+    def __mul__(self, other: Self | float) -> Self:
+        term = other.wav if isinstance(other, Audio) else other
+        return cast(Self, Audio(Wav(self.wav * term), self.sample_rate))
 
     def combine(self, audio: Self) -> Self:
         if self.sample_rate != audio.sample_rate:
@@ -169,6 +180,11 @@ class Audios:
         assert self.hop_length == other.hop_length, "Hop lengths are not equal"
         return self.copy_using(self.audios + other.audios)
 
+    def get_pairs_of_audios(self) -> Iterable[tuple[Audio, Audio]]:
+        iterator = iter(self.audios)
+        while iterator:
+            yield next(iterator), next(iterator)
+
     @classmethod
     def load(cls, paths: list[ValidPath], hop_length: int, normalize: bool) -> Self:
         return cast(
@@ -185,7 +201,7 @@ class Audios:
 
     def _lazy_calculate_min_max_audio_length(self):
         if self._min_audio_length is None or self._max_audio_length is None:
-            self._calculate_min_max_audio_length(self.audios)
+            self._calculate_min_max_audio_length()
 
     def _calculate_min_max_audio_length(self):
         audio_lengths = [self._calculate_audio_length(audio) for audio in self.audios]
@@ -211,19 +227,19 @@ class Audios:
 
 def concatenate_audios(audios: Audios | GeneratedAudios) -> Audio:
     if len(audios) == 0:
-        return Audio(wav=torch.Tensor(), sample_rate=0)
+        return Audio(wav=create_empty_wav(), sample_rate=0)
 
     concatenated_wav = concatenate_wavs(get_wavs_from_audios(audios))
 
     if _check_audios_have_same_sample_rate(audios):
-        raise ValueError(f"Sample rates are not equal")
+        raise ValueError("Sample rates are not equal")
 
     return cast(
         Audio, Audio(wav=concatenated_wav, sample_rate=audios.audios[0].sample_rate)
     )
 
 
-def get_wavs_from_audios(audios: Audios | GeneratedAudios) -> list[torch.Tensor]:
+def get_wavs_from_audios(audios: Audios | GeneratedAudios) -> list[Wav]:
     return [audio.wav for audio in audios]
 
 

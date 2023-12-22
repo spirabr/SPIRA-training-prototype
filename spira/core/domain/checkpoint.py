@@ -1,11 +1,14 @@
 import math
 import os
-from typing import NewType, Optional, Self, cast
+from typing import NewType, Optional, cast
 
 import torch
+from typing_extensions import Self
 
+from spira.adapter.config import TrainCheckpointConfig
 from spira.adapter.valid_path import ValidPath
-from spira.core.domain.model import PyTorchModel
+from spira.core.domain.loss import Loss
+from spira.core.domain.model import Model
 from spira.core.domain.optimizer import Optimizer
 
 Step = NewType("Step", int)
@@ -19,32 +22,30 @@ class Checkpoint:
         self.step = Step(checkpoint_state["step"])
 
     @classmethod
-    def create_initial_checkpoint(
-        cls, model: PyTorchModel, optimizer: Optimizer
-    ) -> Self:
-        return Checkpoint.create(model, optimizer, math.inf, Step(0))
+    def create_initial_checkpoint(cls, model: Model, optimizer: Optimizer) -> Self:
+        return cast(Self, Checkpoint.create(model, optimizer, Loss(math.inf), Step(0)))
 
     @classmethod
     def load(cls, checkpoint_path: ValidPath) -> Self:
         checkpoint_state = torch.load(checkpoint_path, map_location="cpu")
         return cast(Self, Checkpoint(checkpoint_state))
 
-    def restore(self, model: PyTorchModel, optimizer: Optimizer) -> Step:
-        model.load_state_dict(self.model_state)
-        optimizer.load_state_dict(self.optimizer_state)
+    def restore(self, model: Model, optimizer: Optimizer) -> Step:
+        model.load_state(self.model_state)
+        optimizer.load_state(self.optimizer_state)
         return self.step
 
     @classmethod
     def create(
         cls,
-        model: PyTorchModel,
+        model: Model,
         optimizer: Optimizer,
-        validation_loss: float,
+        validation_loss: Loss,
         step: Step,
     ) -> Self:
         checkpoint_state = {
-            "model": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
+            "model": model.dump_state(),
+            "optimizer": optimizer.dump_state(),
             "validation_loss": validation_loss,
             "step": step,
         }
@@ -54,13 +55,13 @@ class Checkpoint:
         checkpoint_state = {
             "model": self.model_state,
             "optimizer": self.optimizer_state,
-            "validation_loss": self.validation_loss,
+            "validation_loss": self.validation_loss.item(),
             "step": self.step,
         }
         torch.save(checkpoint_state, checkpoint_path)
 
 
-class CheckpointCreator:
+class CheckpointBuilder:
     def __init__(self, checkpoint_dir: ValidPath, checkpoint_interval: int):
         if checkpoint_interval <= 1:
             raise ValueError("Checkpoint interval should be greater than one")
@@ -69,7 +70,7 @@ class CheckpointCreator:
         self.checkpoint_interval = checkpoint_interval
 
     def create_checkpoint(
-        self, model: PyTorchModel, optimizer: Optimizer, loss: float, step: Step
+        self, model: Model, optimizer: Optimizer, loss: Loss, step: Step
     ) -> Optional[Checkpoint]:
         return (
             Checkpoint.create(model, optimizer, loss, step)
@@ -96,29 +97,29 @@ class CheckpointCreator:
 class CheckpointManager:
     def __init__(
         self,
-        checkpoint_creator: CheckpointCreator,
-        model: PyTorchModel,
+        checkpoint_builder: CheckpointBuilder,
+        model: Model,
         optimizer: Optimizer,
         initial_checkpoint: Optional[Checkpoint],
     ):
         self.model = model
         self.optimizer = optimizer
-        self.checkpoint_creator = checkpoint_creator
+        self.checkpoint_builder = checkpoint_builder
 
         self.last_checkpoint = self._initialize_checkpoint(initial_checkpoint)
         self.best_checkpoint = self.last_checkpoint
 
-    def update_and_save_checkpoints(self, loss: float, step: Step):
+    def update_and_save_checkpoints(self, loss: Loss, step: Step):
         self._update_checkpoints(loss, step)
         self._save_checkpoints()
 
-    def _update_checkpoints(self, loss: float, step: Step):
+    def _update_checkpoints(self, loss: Loss, step: Step):
         self.last_checkpoint = self._create_last_checkpoint(loss, step)
         self.best_checkpoint = self._define_best_checkpoint()
 
     def _save_checkpoints(self):
-        self.checkpoint_creator.save_checkpoint_with_step(self.last_checkpoint)
-        self.checkpoint_creator.save_checkpoint_with_prefix(
+        self.checkpoint_builder.save_checkpoint_with_step(self.last_checkpoint)
+        self.checkpoint_builder.save_checkpoint_with_prefix(
             self.best_checkpoint, "best"
         )
 
@@ -131,8 +132,8 @@ class CheckpointManager:
             else Checkpoint.create_initial_checkpoint(self.model, self.optimizer)
         )
 
-    def _create_last_checkpoint(self, loss: float, step: Step) -> Checkpoint:
-        current_checkpoint = self.checkpoint_creator.create_checkpoint(
+    def _create_last_checkpoint(self, loss: Loss, step: Step) -> Checkpoint:
+        current_checkpoint = self.checkpoint_builder.create_checkpoint(
             self.model, self.optimizer, loss, step
         )
         return current_checkpoint if current_checkpoint else self.last_checkpoint
@@ -141,6 +142,10 @@ class CheckpointManager:
         if self.last_checkpoint.validation_loss < self.best_checkpoint.validation_loss:
             return self.last_checkpoint
         return self.best_checkpoint
+
+
+def create_checkpoint_builder(config: TrainCheckpointConfig) -> CheckpointBuilder:
+    return CheckpointBuilder(config.dir, config.interval)
 
 
 # This part of the Code refers to the exception handling of the
@@ -154,6 +159,6 @@ class CheckpointManager:
 #         self.checkpoint_path = checkpoint_path
 #
 #     def load_state(self, model):
-#         model_state = model.state_dict()
+#         model_state = model.dump_state_dict()
 #         model_state = set_init_dict(model_state, checkpoint, c)
-#         model.load_state_dict(model_state)
+#         model.load_state(model_state)
