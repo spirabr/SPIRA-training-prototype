@@ -81,7 +81,6 @@ control_feature_transformer = create_audio_feature_transformer(
 patients_features = patient_feature_transformer.transform_into_features(patients_inputs)
 controls_features = control_feature_transformer.transform_into_features(controls_inputs)
 
-# We are assuming all the patients have the disease.
 patients_label = [1 for _ in range(len(patients_features))]
 controls_label = [0 for _ in range(len(controls_features))]
 
